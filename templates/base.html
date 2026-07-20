@@ -1,0 +1,78 @@
+{% load bootstrap4 %}
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{% block title %}EKO Система{% endblock %}</title>
+    {% bootstrap_css %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .navbar { margin-bottom: 20px; }
+        .btn { white-space: nowrap; }
+        .table-responsive { width: 100%; }
+        .main-content { padding-left: 5%; padding-right: 5%; margin-bottom: 50px; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="{% url 'index' %}">EKO Мениджър</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'index' %}">Начало</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'upload' %}">Качване на файлове</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'company_list' %}">Фирми</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'analytics' %}">Аналитика</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'card_list' %}">Карти</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav">
+                {% if user.is_authenticated %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'profile' %}">Профил ({{ user.username }})</a>
+                </li>
+                <li class="nav-item">
+                    <form action="{% url 'logout' %}" method="post" class="form-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-link nav-link">Изход</button>
+                    </form>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'login' %}">Вход</a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    {% bootstrap_javascript jquery='full' %}
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+</body>
+</html>

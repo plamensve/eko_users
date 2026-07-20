@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load bootstrap4 %}
+
+{% block title %}Вход - EKO Система{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white text-center">
+                <h4>Вход в системата</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {% bootstrap_form form %}
+                    <button type="submit" class="btn btn-primary btn-block">Влез</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

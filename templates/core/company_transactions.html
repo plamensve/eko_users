@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Транзакции на {{ company.name }}{% endblock %}
+
+{% block content %}
+<div class="mt-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2>Транзакции: {{ company.name }}</h2>
+        <div>
+            <a href="{% url 'company_prices' company.id %}" class="btn btn-primary"><i class="fas fa-tag"></i> Виж цени</a>
+            <a href="{% url 'export_excel' company.id %}" class="btn btn-success"><i class="fas fa-file-excel"></i> Експорт в Excel</a>
+            <a href="{% url 'export_pdf' company.id %}" class="btn btn-danger"><i class="fas fa-file-pdf"></i> Експорт в PDF</a>
+            <a href="{% url 'company_list' %}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Назад</a>
+        </div>
+    </div>
+    
+    {% if company.is_twice_monthly %}
+    <div class="alert alert-info mt-3">
+        Тази фирма е на двукратно фактуриране. Показват се само транзакции за текущия период.
+    </div>
+    {% endif %}
+
+    {% if company.note %}
+    <div class="alert alert-warning mt-2">
+        <strong>Забележка:</strong> {{ company.note }}
+    </div>
+    {% endif %}
+    
+    <div class="table-responsive mt-3">
+        <table class="table table-sm table-bordered">
+            <thead class="bg-light">
+                <tr>
+                    <th>Дата</th>
+                    <th>Карта / МПС</th>
+                    <th>Материал</th>
+                    <th>Кол-во</th>
+                    <th>Цена ЕКО (€)</th>
+                    <th>Общо ЕКО (€)</th>
+                    <th>Цена GTA (€)</th>
+                    <th>Общо GTA (€)</th>
+                    <th>Печалба (€)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in transactions %}
+                <tr>
+                    <td>{{ t.date|date:"d.m.Y" }}</td>
+                    <td>
+                        {{ t.card }}<br>
+                        <small class="text-muted">{{ t.vehicle|default:"" }}</small>
+                    </td>
+                    <td>{{ t.material }}</td>
+                    <td class="text-right">{{ t.qty|stringformat:".2f" }}</td>
+                    <td class="text-right">{{ t.eko_price|stringformat:".2f" }}</td>
+                    <td class="text-right">{{ t.eko_total|stringformat:".2f" }}</td>
+                    <td class="text-right text-primary font-weight-bold">{{ t.gta_price|stringformat:".2f" }}</td>
+                    <td class="text-right font-weight-bold">{{ t.gta_total|stringformat:".2f" }}</td>
+                    <td class="text-right {% if t.profit > 0 %}text-success{% endif %}">{{ t.profit|stringformat:".2f" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center">Няма намерени транзакции за тази фирма.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot class="bg-light font-weight-bold">
+                <tr>
+                    <td colspan="3" class="text-right">ОБЩО:</td>
+                    <td class="text-right">{{ total_qty|stringformat:".2f" }}</td>
+                    <td></td>
+                    <td class="text-right">{{ total_eko|stringformat:".2f" }}</td>
+                    <td></td>
+                    <td class="text-right">{{ total_gta|stringformat:".2f" }}</td>
+                    <td class="text-right text-success">{{ total_profit|stringformat:".2f" }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}История на цените - {{ company.name }}{% endblock %}
+
+{% block content %}
+<div class="mt-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2>История на цените: {{ company.name }}</h2>
+        <div>
+            <a href="{% url 'company_transactions' company.id %}" class="btn btn-info"><i class="fas fa-list"></i> Транзакции</a>
+            <a href="{% url 'company_list' %}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Назад</a>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0"><i class="fas fa-tag"></i> Актуални и исторически цени</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Дата</th>
+                            <th>Продукт</th>
+                            <th class="text-right">Крайна цена (€)</th>
+                            <th class="text-right">Марж (€)</th>
+                            <th class="text-right">Отстъпка (€)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for price in prices %}
+                        <tr>
+                            <td>{{ price.date|date:"d.m.Y" }}</td>
+                            <td>{{ price.product }}</td>
+                            <td class="text-right font-weight-bold">{{ price.final_price|stringformat:".4f" }} €</td>
+                            <td class="text-right">{{ price.margin|stringformat:".4f" }} €</td>
+                            <td class="text-right">{{ price.discount|stringformat:".4f" }} €</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center p-4">Няма намерени записи за цени за тази фирма.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

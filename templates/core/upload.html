@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load bootstrap4 %}
+
+{% block title %}Качване на файлове - EKO Система{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card mt-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Качване на Excel файлове</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {% bootstrap_form form %}
+                    <div class="alert alert-info">
+                        <strong>Инструкции:</strong><br>
+                        1. Първо качете файловете за <strong>карти</strong> и <strong>цени</strong> (ако има промени).<br>
+                        2. След това качете файла с <strong>транзакции</strong> за обработка.
+                    </div>
+                    <button type="submit" class="btn btn-success btn-block"><i class="fas fa-file-import"></i> Импортиране</button>
+                </form>
+
+                <hr class="my-4">
+                <h5>Управление на данните</h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <a href="{% url 'card_delete_all' %}" class="btn btn-outline-danger btn-block"><i class="fas fa-trash"></i> Изтрий всички карти</a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{% url 'price_delete_all' %}" class="btn btn-outline-danger btn-block"><i class="fas fa-trash"></i> Изтрий всички цени</a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{% url 'transaction_delete_all' %}" class="btn btn-outline-danger btn-block"><i class="fas fa-trash"></i> Изтрий всички транзакции</a>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-6">
+                        <a href="{% url 'company_delete_all' %}" class="btn btn-outline-danger btn-block"><i class="fas fa-trash-alt"></i> Изтрий всички фирми</a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="{% url 'relink_data' %}" class="btn btn-warning btn-block"><i class="fas fa-sync"></i> Синхронизирай връзките</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

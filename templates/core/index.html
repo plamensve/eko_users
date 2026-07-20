@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="jumbotron mt-4">
+    <h1 class="display-4">Добре дошли в EKO Мениджър!</h1>
+    <p class="lead">Това приложение позволява лесно управление и обработка на транзакции от карти ЕКО.</p>
+    <hr class="my-4">
+    <p>Започнете като качите необходимите Excel файлове.</p>
+    <a class="btn btn-primary btn-lg" href="{% url 'upload' %}" role="button">Качване на файлове</a>
+    <a class="btn btn-secondary btn-lg" href="{% url 'company_list' %}" role="button">Преглед на фирми</a>
+</div>
+{% endblock %}

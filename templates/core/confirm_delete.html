@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Потвърждение за изтриване - EKO Система{% endblock %}
+
+{% block content %}
+<div class="mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">Потвърждение за изтриване</h4>
+                </div>
+                <div class="card-body text-center">
+                    <p class="lead">Сигурни ли сте, че искате да изтриете {{ type }} <strong>{{ object }}</strong>?</p>
+                    <p class="text-muted">Това действие е необратимо.</p>
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-lg">Да, изтрий</button>
+                        <a href="{{ request.META.HTTP_REFERER|default:'index' }}" class="btn btn-secondary btn-lg ml-3">Отказ</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

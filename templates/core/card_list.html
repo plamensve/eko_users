@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Списък на картите - EKO Система{% endblock %}
+
+{% block content %}
+<div class="mt-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2>Списък на картите</h2>
+        <div>
+            <a href="{% url 'card_add' %}" class="btn btn-primary"><i class="fas fa-plus"></i> Добави карта</a>
+            {% if cards %}
+            <a href="{% url 'card_delete_all' %}" class="btn btn-danger"><i class="fas fa-trash-alt"></i> Изтрий всички карти</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="table-responsive mt-3">
+        <table class="table table-hover table-sm">
+            <thead class="thead-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Номер на карта</th>
+                    <th>Превозно средство</th>
+                    <th>Фирма</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for card in cards %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ card.card_number }}</td>
+                    <td>{{ card.vehicle }}</td>
+                    <td>{{ card.company.name }}</td>
+                    <td>
+                        <a href="{% url 'card_edit' card.id %}" class="btn btn-sm btn-outline-info">Редактирай</a>
+                        <a href="{% url 'card_delete' card.id %}" class="btn btn-sm btn-outline-danger">Изтрий</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">Няма намерени карти.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

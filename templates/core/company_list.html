@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Списък на фирмите - EKO Система{% endblock %}
+
+{% block content %}
+<div class="mt-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2>Списък на фирмите</h2>
+        <div>
+            <a href="{% url 'company_add' %}" class="btn btn-success mr-2"><i class="fas fa-plus"></i> Добави фирма</a>
+            {% if companies %}
+            <a href="{% url 'company_delete_all' %}" class="btn btn-danger mr-2"><i class="fas fa-trash-alt"></i> Изтрий всички фирми</a>
+            {% endif %}
+            <a href="{% url 'export_all_zip' %}" class="btn btn-primary"><i class="fas fa-file-archive"></i> Изтегли всички отчети (ZIP)</a>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <form method="get" action="{% url 'company_list' %}" class="form-inline">
+                <div class="input-group w-100">
+                    <input type="text" name="search" id="company-search" class="form-control" placeholder="Търсене по име на фирма..." value="{{ search_query }}" autocomplete="off">
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fas fa-search"></i> Търси
+                        </button>
+                        {% if search_query %}
+                            <a href="{% url 'company_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Изчисти
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            $("#company-search").autocomplete({
+                source: "{% url 'company_search_suggestions' %}",
+                minLength: 2,
+                select: function(event, ui) {
+                    $("#company-search").val(ui.item.value);
+                    $(this).closest('form').submit();
+                }
+            });
+        });
+    </script>
+
+    <div class="table-responsive">
+        <table class="table table-hover mt-3">
+            <thead class="thead-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Фирма</th>
+                    <th>ЕИК</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for company in companies %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ company.name }}</td>
+                    <td>{{ company.eik }}</td>
+                    <td>
+                        <a href="{% url 'company_transactions' company.id %}" class="btn btn-sm btn-info" title="Виж транзакции"><i class="fas fa-list"></i></a>
+                        <a href="{% url 'company_prices' company.id %}" class="btn btn-sm btn-primary" title="Цени"><i class="fas fa-tag"></i></a>
+                        <a href="{% url 'export_company_zip' company.id %}" class="btn btn-sm btn-warning" title="Изтегли отчети (ZIP)"><i class="fas fa-file-archive"></i> Експорт</a>
+                        <a href="{% url 'company_edit' company.id %}" class="btn btn-sm btn-outline-secondary" title="Редактирай"><i class="fas fa-edit"></i></a>
+                        <a href="{% url 'company_delete' company.id %}" class="btn btn-sm btn-outline-danger" title="Изтрий"><i class="fas fa-trash"></i></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center">Няма намерени фирми. Моля, качете файл с карти.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
