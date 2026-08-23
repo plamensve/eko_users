@@ -2,15 +2,18 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import UploadFileForm, CompanyForm, CardForm
-from .utils import import_cards, import_prices, import_transactions, export_all_companies_zip, get_company_report_data, export_single_company_zip, normalize_text, relink_data
+from .utils import import_cards, import_prices, import_transactions, export_all_companies_zip, get_company_report_data, \
+    export_single_company_zip, normalize_text, relink_data
 from .models import Transaction, Company, Price, Card
 import os
 from django.conf import settings
 from django.db.models import Max, Q
 
+
 @login_required
 def index(request):
     return render(request, 'core/index.html')
+
 
 @login_required
 def upload_files(request):
@@ -19,7 +22,7 @@ def upload_files(request):
         if form.is_valid():
             if not os.path.exists(settings.MEDIA_ROOT):
                 os.makedirs(settings.MEDIA_ROOT)
-                
+
             if request.FILES.get('cards_file'):
                 file = request.FILES['cards_file']
                 path = os.path.join(settings.MEDIA_ROOT, 'temp_cards.xlsx')
@@ -28,7 +31,7 @@ def upload_files(request):
                         destination.write(chunk)
                 import_cards(path)
                 messages.success(request, "Картите бяха импортирани успешно.")
-            
+
             if request.FILES.getlist('prices_files'):
                 files = request.FILES.getlist('prices_files')
                 for i, file in enumerate(files):
@@ -38,7 +41,7 @@ def upload_files(request):
                             destination.write(chunk)
                     import_prices(path)
                 messages.success(request, f"Цените ({len(files)} файла) бяха импортирани успешно.")
-                
+
             if request.FILES.get('transactions_file'):
                 file = request.FILES['transactions_file']
                 path = os.path.join(settings.MEDIA_ROOT, 'temp_transactions.xlsx')
@@ -48,21 +51,22 @@ def upload_files(request):
                 Transaction.objects.all().delete()
                 import_transactions(path)
                 messages.success(request, "Транзакциите бяха импортирани успешно.")
-                
+
             return redirect('index')
     else:
         form = UploadFileForm()
     return render(request, 'core/upload.html', {'form': form})
 
+
 @login_required
 def company_list(request):
     search_query = request.GET.get('search', '')
     companies = Company.objects.all().order_by('name')
-    
+
     if search_query:
         normalized_query = normalize_text(search_query)
         companies = companies.filter(name__icontains=normalized_query)
-        
+
     return render(request, 'core/company_list.html', {
         'companies': companies,
         'search_query': search_query
@@ -72,6 +76,7 @@ def company_list(request):
 from django.http import HttpResponse, JsonResponse
 from .utils import import_cards, import_prices, import_transactions, export_company_excel, export_company_pdf
 import urllib.parse
+
 
 @login_required
 def company_search_suggestions(request):
@@ -83,78 +88,142 @@ def company_search_suggestions(request):
         return JsonResponse(results, safe=False)
     return JsonResponse([], safe=False)
 
+
 @login_required
 def export_pdf(request, company_id):
     company = Company.objects.get(id=company_id)
-    output = export_company_pdf(company)
-    
+
+    report_type = request.GET.get('report', 'billing')
+
+    if report_type not in ('billing', 'first', 'second', 'full'):
+        report_type = 'billing'
+
+    output = export_company_pdf(
+        company,
+        period=report_type
+    )
+
     filename = f"Report_{company.name}.pdf"
     filename_quoted = urllib.parse.quote(filename)
-    
+
     response = HttpResponse(
         output,
         content_type='application/pdf'
     )
-    response['Content-Disposition'] = f"attachment; filename*=UTF-8''{filename_quoted}"
+
+    response['Content-Disposition'] = (
+        f"attachment; filename*=UTF-8''{filename_quoted}"
+    )
+
     return response
+
 
 @login_required
 def company_transactions(request, company_id):
     company = Company.objects.get(id=company_id)
-    data, t_qty, t_eko, t_gta, t_profit = get_company_report_data(company)
-    
+
+    report_type = request.GET.get('report', 'billing')
+
+    if report_type not in ('billing', 'first', 'second', 'full'):
+        report_type = 'billing'
+
+    data, t_qty, t_eko, t_gta, t_profit = get_company_report_data(
+        company,
+        period=report_type
+    )
+
     return render(request, 'core/company_transactions.html', {
         'company': company,
         'transactions': data,
         'total_qty': t_qty,
         'total_eko': t_eko,
         'total_gta': t_gta,
-        'total_profit': t_profit
+        'total_profit': t_profit,
+        'report_type': report_type
     })
+
 
 @login_required
 def export_excel(request, company_id):
     company = Company.objects.get(id=company_id)
-    output = export_company_excel(company)
-    
+
+    report_type = request.GET.get('report', 'billing')
+
+    if report_type not in ('billing', 'first', 'second', 'full'):
+        report_type = 'billing'
+
+    output = export_company_excel(
+        company,
+        period=report_type
+    )
+
     filename = f"Report_{company.name}.xlsx"
-    # Кодиране на името на файла за съвместимост с различни браузъри
     filename_quoted = urllib.parse.quote(filename)
-    
+
     response = HttpResponse(
         output,
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-    response['Content-Disposition'] = f"attachment; filename*=UTF-8''{filename_quoted}"
+
+    response['Content-Disposition'] = (
+        f"attachment; filename*=UTF-8''{filename_quoted}"
+    )
+
     return response
+
 
 @login_required
 def export_all_zip(request):
-    zip_buffer = export_all_companies_zip()
-    
+    report_type = request.GET.get('report', 'billing')
+
+    if report_type not in ('billing', 'first', 'second', 'full'):
+        report_type = 'billing'
+
+    zip_buffer = export_all_companies_zip(
+        period=report_type
+    )
+
     response = HttpResponse(
         zip_buffer.getvalue(),
         content_type='application/x-zip-compressed'
     )
-    response['Content-Disposition'] = 'attachment; filename="All_Company_Reports.zip"'
+
+    response['Content-Disposition'] = (
+        'attachment; filename="All_Company_Reports.zip"'
+    )
+
     return response
+
 
 @login_required
 def export_company_zip_view(request, company_id):
     company = get_object_or_404(Company, id=company_id)
-    zip_buffer = export_single_company_zip(company)
-    
+
+    report_type = request.GET.get('report', 'billing')
+
+    if report_type not in ('billing', 'first', 'second', 'full'):
+        report_type = 'billing'
+
+    zip_buffer = export_single_company_zip(
+        company,
+        period=report_type
+    )
+
     filename = f"Report_{company.name}.zip"
     filename_quoted = urllib.parse.quote(filename)
-    
+
     response = HttpResponse(
         zip_buffer.getvalue(),
         content_type='application/x-zip-compressed'
     )
-    response['Content-Disposition'] = f"attachment; filename*=UTF-8''{filename_quoted}"
+
+    response['Content-Disposition'] = (
+        f"attachment; filename*=UTF-8''{filename_quoted}"
+    )
+
     return response
 
-# Management Views
+
 @login_required
 def company_add(request):
     if request.method == 'POST':
@@ -166,6 +235,7 @@ def company_add(request):
     else:
         form = CompanyForm()
     return render(request, 'core/company_form.html', {'form': form, 'title': 'Добавяне на фирма'})
+
 
 @login_required
 def company_edit(request, company_id):
@@ -180,6 +250,7 @@ def company_edit(request, company_id):
         form = CompanyForm(instance=company)
     return render(request, 'core/company_form.html', {'form': form, 'title': 'Редактиране на фирма'})
 
+
 @login_required
 def company_delete(request, company_id):
     company = get_object_or_404(Company, id=company_id)
@@ -188,6 +259,7 @@ def company_delete(request, company_id):
         messages.success(request, "Фирмата беше изтрита успешно.")
         return redirect('company_list')
     return render(request, 'core/confirm_delete.html', {'object': company, 'type': 'фирма'})
+
 
 @login_required
 def company_delete_all(request):
@@ -198,10 +270,12 @@ def company_delete_all(request):
         return redirect('company_list')
     return render(request, 'core/confirm_delete.html', {'object': "всички фирми", 'type': 'всички фирми'})
 
+
 @login_required
 def card_list(request):
     cards = Card.objects.all().order_by('company__name', 'card_number')
     return render(request, 'core/card_list.html', {'cards': cards})
+
 
 @login_required
 def card_add(request):
@@ -214,6 +288,7 @@ def card_add(request):
     else:
         form = CardForm()
     return render(request, 'core/card_form.html', {'form': form, 'title': 'Добавяне на карта'})
+
 
 @login_required
 def card_edit(request, card_id):
@@ -228,6 +303,7 @@ def card_edit(request, card_id):
         form = CardForm(instance=card)
     return render(request, 'core/card_form.html', {'form': form, 'title': 'Редактиране на карта'})
 
+
 @login_required
 def card_delete(request, card_id):
     card = get_object_or_404(Card, id=card_id)
@@ -236,6 +312,7 @@ def card_delete(request, card_id):
         messages.success(request, "Картата беше изтрита успешно.")
         return redirect('card_list')
     return render(request, 'core/confirm_delete.html', {'object': card, 'type': 'карта'})
+
 
 @login_required
 def card_delete_all(request):
@@ -246,6 +323,7 @@ def card_delete_all(request):
         return redirect('card_list')
     return render(request, 'core/confirm_delete.html', {'object': "всички карти", 'type': 'всички карти'})
 
+
 @login_required
 def price_delete_all(request):
     if request.method == 'POST':
@@ -254,6 +332,7 @@ def price_delete_all(request):
         messages.success(request, f"Всички {count} цени бяха изтрити успешно.")
         return redirect('upload')
     return render(request, 'core/confirm_delete.html', {'object': "всички цени", 'type': 'всички цени'})
+
 
 @login_required
 def transaction_delete_all(request):
@@ -264,8 +343,10 @@ def transaction_delete_all(request):
         return redirect('upload')
     return render(request, 'core/confirm_delete.html', {'object': "всички транзакции", 'type': 'всички транзакции'})
 
+
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm, UserChangeForm
+
 
 @login_required
 def profile(request):
@@ -276,7 +357,7 @@ def profile(request):
         email = request.POST.get('email')
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
-        
+
         request.user.email = email
         request.user.first_name = first_name
         request.user.last_name = last_name
@@ -284,6 +365,7 @@ def profile(request):
         messages.success(request, "Профилът беше обновен.")
         return redirect('profile')
     return render(request, 'core/profile.html')
+
 
 @login_required
 def change_password(request):
@@ -307,16 +389,27 @@ def relink_data_view(request):
     messages.success(request, f"Успешно свързани: {count_t} транзакции и {count_p} цени.")
     return redirect('upload')
 
+
+@login_required
 def analytics(request):
     companies = Company.objects.all().order_by('name')
     analytics_data = []
-    
+
     grand_total_qty = 0
     grand_total_profit = 0
     grand_total_gta = 0
-    
+
+    report_type = request.GET.get('report', 'full')
+
+    if report_type not in ('first', 'second', 'full'):
+        report_type = 'full'
+
     for company in companies:
-        data, t_qty, t_eko, t_gta, t_profit = get_company_report_data(company)
+        data, t_qty, t_eko, t_gta, t_profit = get_company_report_data(
+            company,
+            period=report_type
+        )
+
         if t_qty > 0:
             analytics_data.append({
                 'company': company,
@@ -324,16 +417,19 @@ def analytics(request):
                 'total_gta': t_gta,
                 'total_profit': t_profit
             })
+
             grand_total_qty += t_qty
             grand_total_profit += t_profit
             grand_total_gta += t_gta
-            
+
     return render(request, 'core/analytics.html', {
         'analytics_data': analytics_data,
         'grand_total_qty': grand_total_qty,
         'grand_total_profit': grand_total_profit,
-        'grand_total_gta': grand_total_gta
+        'grand_total_gta': grand_total_gta,
+        'report_type': report_type
     })
+
 
 @login_required
 def company_prices(request, company_id):
