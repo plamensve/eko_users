@@ -27,6 +27,7 @@ urlpatterns = [
     path('cards/', views.card_list, name='card_list'),
     path('cards/add/', views.card_add, name='card_add'),
     path('cards/delete-all/', views.card_delete_all, name='card_delete_all'),
+    path('prices/', views.price_list, name='price_list'),
     path('prices/delete-all/', views.price_delete_all, name='price_delete_all'),
     path('transactions/delete-all/', views.transaction_delete_all, name='transaction_delete_all'),
     path('cards/<int:card_id>/edit/', views.card_edit, name='card_edit'),

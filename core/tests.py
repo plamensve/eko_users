@@ -126,6 +126,36 @@ class CardListTests(TestCase):
         self.assertContains(response, "700001")
 
 
+class PriceListTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username="prices", password="safe-test-password")
+        self.client.force_login(self.user)
+        first_company = Company.objects.create(name="АЛФА ТРАНС", eik="111111111")
+        second_company = Company.objects.create(name="БЕТА ЛОГИСТИК", eik="222222222")
+        Price.objects.create(date=date(2026, 9, 18), company=first_company, product="DIESEL", eko_price="1.5000", margin="0.0300", discount="0", final_price="1.5300")
+        Price.objects.create(date=date(2026, 9, 19), company=second_company, product="E GAS LPG", eko_price="0.7000", margin="0", discount="0.0200", final_price="0.6800")
+
+    def test_price_list_shows_imported_price_fields(self):
+        response = self.client.get(reverse("price_list"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Импортнати цени")
+        self.assertContains(response, "АЛФА ТРАНС")
+        self.assertContains(response, "DIESEL")
+        self.assertContains(response, "1.5000 €")
+        self.assertContains(response, "1.5300 €")
+
+    def test_price_list_filters_by_company_product_and_date(self):
+        response = self.client.get(reverse("price_list"), {
+            "search": "БЕТА",
+            "product": "E GAS LPG",
+            "date_from": "2026-09-19",
+            "date_to": "2026-09-19",
+        })
+        self.assertContains(response, "БЕТА ЛОГИСТИК")
+        self.assertNotContains(response, "АЛФА ТРАНС")
+        self.assertEqual(response.context["filtered_count"], 1)
+
+
 class PriceUploadTests(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(username="importer", password="safe-test-password")

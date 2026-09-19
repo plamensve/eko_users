@@ -8,6 +8,8 @@ from .models import Transaction, Company, Price, Card
 import os
 import tempfile
 from django.db.models import Count, Max, Min, Q
+from django.core.paginator import Paginator
+from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_POST
 from django.urls import reverse
 
@@ -294,6 +296,54 @@ def company_delete_all(request):
 def card_list(request):
     cards = Card.objects.all().order_by('company__name', 'card_number')
     return render(request, 'core/card_list.html', {'cards': cards})
+
+
+@login_required
+def price_list(request):
+    prices = Price.objects.select_related('company').order_by('-date', 'company__name', 'product')
+    search_query = request.GET.get('search', '').strip()
+    product = request.GET.get('product', '').strip()
+    date_from_value = request.GET.get('date_from', '').strip()
+    date_to_value = request.GET.get('date_to', '').strip()
+
+    if search_query:
+        prices = prices.filter(
+            Q(company__name__icontains=search_query)
+            | Q(company__eik__icontains=search_query)
+            | Q(company_name_tmp__icontains=search_query)
+            | Q(company_eik_tmp__icontains=search_query)
+            | Q(product__icontains=search_query)
+        )
+    if product:
+        prices = prices.filter(product=product)
+
+    date_from = parse_date(date_from_value)
+    date_to = parse_date(date_to_value)
+    if date_from:
+        prices = prices.filter(date__gte=date_from)
+    if date_to:
+        prices = prices.filter(date__lte=date_to)
+
+    summary = prices.aggregate(latest_date=Max('date'))
+    filtered_count = prices.count()
+    product_count = prices.values('product').distinct().count()
+    paginator = Paginator(prices, 100)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    query_params = request.GET.copy()
+    query_params.pop('page', None)
+
+    return render(request, 'core/price_list.html', {
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'selected_product': product,
+        'date_from': date_from_value,
+        'date_to': date_to_value,
+        'products': Price.objects.order_by('product').values_list('product', flat=True).distinct(),
+        'filtered_count': filtered_count,
+        'product_count': product_count,
+        'latest_date': summary['latest_date'],
+        'query_string': query_params.urlencode(),
+    })
 
 
 @login_required

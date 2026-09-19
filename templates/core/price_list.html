@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}Импортнати цени · EKO Manager{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div><div class="eyebrow">Ценови листи</div><h1 class="page-title">Импортнати цени</h1><p class="page-subtitle">Преглед на договорните цени, маржове и отстъпки по фирми и дати.</p></div>
+  <div class="action-group"><a class="btn btn-success" href="{% url 'upload' %}"><i class="bi bi-cloud-arrow-up me-1"></i>Импортирай цени</a></div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-sm-4"><div class="surface metric-card"><div class="metric-label">Намерени записи</div><div class="metric-value">{{ filtered_count }}</div><div class="metric-meta">според избраните филтри</div></div></div>
+  <div class="col-sm-4"><div class="surface metric-card"><div class="metric-label">Продукти</div><div class="metric-value">{{ product_count }}</div><div class="metric-meta">различни горива в резултатите</div></div></div>
+  <div class="col-sm-4"><div class="surface metric-card"><div class="metric-label">Последна дата</div><div class="metric-value fs-3">{% if latest_date %}{{ latest_date|date:'d.m.Y' }}{% else %}—{% endif %}</div><div class="metric-meta">най-новата импортната цена</div></div></div>
+</div>
+
+<section class="surface">
+  <div class="surface-header">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-12 col-xl-4">
+        <label class="form-label small fw-semibold" for="price-search">Фирма, ЕИК или продукт</label>
+        <div class="input-group"><span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span><input type="search" class="form-control border-start-0" id="price-search" name="search" value="{{ search_query }}" placeholder="Търсене в импортнатите цени"></div>
+      </div>
+      <div class="col-sm-4 col-xl-3">
+        <label class="form-label small fw-semibold" for="price-product">Продукт</label>
+        <select class="form-select" id="price-product" name="product"><option value="">Всички продукти</option>{% for item in products %}<option value="{{ item }}" {% if selected_product == item %}selected{% endif %}>{{ item }}</option>{% endfor %}</select>
+      </div>
+      <div class="col-sm-4 col-xl-2"><label class="form-label small fw-semibold" for="price-date-from">От дата</label><input class="form-control" id="price-date-from" type="date" name="date_from" value="{{ date_from }}"></div>
+      <div class="col-sm-4 col-xl-2"><label class="form-label small fw-semibold" for="price-date-to">До дата</label><input class="form-control" id="price-date-to" type="date" name="date_to" value="{{ date_to }}"></div>
+      <div class="col-12 col-xl-1 d-grid"><button class="btn btn-primary" type="submit" title="Приложи филтрите"><i class="bi bi-funnel"></i><span class="d-xl-none ms-1">Филтрирай</span></button></div>
+      {% if search_query or selected_product or date_from or date_to %}<div class="col-12"><a class="small text-decoration-none" href="{% url 'price_list' %}"><i class="bi bi-x-circle me-1"></i>Изчисти всички филтри</a></div>{% endif %}
+    </form>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead><tr><th class="text-center" style="width:64px">№</th><th>Дата</th><th>Фирма</th><th>Продукт</th><th class="currency">ЕКО цена</th><th class="currency">Марж</th><th class="currency">Отстъпка</th><th class="currency">Крайна цена</th></tr></thead>
+      <tbody>
+      {% for price in page_obj %}
+        <tr>
+          <td class="text-center fw-semibold text-muted">{{ forloop.counter0|add:page_obj.start_index }}</td>
+          <td class="text-nowrap">{{ price.date|date:'d.m.Y' }}</td>
+          <td>{% if price.company %}<a class="fw-bold text-decoration-none" href="{% url 'company_prices' price.company.id %}">{{ price.company.name }}</a><div class="small text-muted font-monospace">ЕИК {{ price.company.eik }}</div>{% else %}<strong>{{ price.company_name_tmp|default:'Несвързана фирма' }}</strong><div class="small text-muted font-monospace">ЕИК {{ price.company_eik_tmp|default:'—' }}</div>{% endif %}</td>
+          <td><span class="status-pill">{{ price.product }}</span></td>
+          <td class="currency">{{ price.eko_price|stringformat:'.4f' }} €</td>
+          <td class="currency {% if price.margin > 0 %}text-success fw-semibold{% endif %}">{{ price.margin|stringformat:'.4f' }} €</td>
+          <td class="currency {% if price.discount > 0 %}text-primary fw-semibold{% endif %}">{{ price.discount|stringformat:'.4f' }} €</td>
+          <td class="currency fw-bold">{{ price.final_price|stringformat:'.4f' }} €</td>
+        </tr>
+      {% empty %}<tr><td colspan="8"><div class="empty-state"><i class="bi bi-tags fs-1"></i><h2 class="h5 mt-3">Няма намерени цени</h2><p>{% if search_query or selected_product or date_from or date_to %}Променете филтрите и опитайте отново.{% else %}Импортирайте ценови листи, за да се покажат записите тук.{% endif %}</p>{% if not search_query and not selected_product and not date_from and not date_to %}<a class="btn btn-success" href="{% url 'upload' %}">Към импорта</a>{% endif %}</div></td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if page_obj.paginator.num_pages > 1 %}
+  <div class="surface-header border-top border-bottom-0 d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <span class="small text-muted">Страница {{ page_obj.number }} от {{ page_obj.paginator.num_pages }}</span>
+    <nav aria-label="Страници с цени"><ul class="pagination pagination-sm mb-0">
+      <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}"><a class="page-link" href="{% if page_obj.has_previous %}?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.previous_page_number }}{% else %}#{% endif %}">Назад</a></li>
+      <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+      <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}"><a class="page-link" href="{% if page_obj.has_next %}?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.next_page_number }}{% else %}#{% endif %}">Напред</a></li>
+    </ul></nav>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
