@@ -70,12 +70,6 @@ def company_list(request):
     search_query = request.GET.get('search', '')
     companies = Company.objects.annotate(card_total=Count('cards')).order_by('name')
 
-    if search_query:
-        normalized_query = normalize_text(search_query)
-        companies = companies.filter(
-            Q(name__startswith=normalized_query) | Q(eik__startswith=search_query.strip())
-        )
-
     return render(request, 'core/company_list.html', {
         'companies': companies,
         'search_query': search_query

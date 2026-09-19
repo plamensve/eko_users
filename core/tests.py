@@ -97,8 +97,9 @@ class CompanySearchTests(TestCase):
         response = self.client.get(reverse("company_search_suggestions"), {"term": "123"})
         self.assertEqual(response.json()[0]["id"], self.auto_petkov.id)
 
-    def test_filtered_company_list_uses_the_same_prefix_rule(self):
-        response = self.client.get(reverse("company_list"), {"search": "авт"})
+    def test_company_list_contains_rows_for_dynamic_filtering_without_suggestions(self):
+        response = self.client.get(reverse("company_list"))
         self.assertContains(response, "АВТО ТРАНС ПЕТКОВ")
         self.assertContains(response, "АВТО СЕРВИЗ ЕООД")
-        self.assertNotContains(response, "ТРАНС АВТО ЕООД")
+        self.assertContains(response, 'class="company-row"', count=3)
+        self.assertNotContains(response, 'id="company-suggestions"')

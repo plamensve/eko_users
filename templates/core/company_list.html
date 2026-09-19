@@ -7,27 +7,28 @@
 </div>
 <section class="surface">
   <div class="surface-header">
-    <form method="get" id="company-search-form" class="row g-2 align-items-center" autocomplete="off">
-      <div class="col position-relative">
-        <div class="input-group"><span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span><input class="form-control border-start-0" id="company-search" name="search" value="{{ search_query }}" placeholder="Започнете да въвеждате име на фирма или ЕИК" aria-label="Търсене по фирма или ЕИК" aria-autocomplete="list" aria-controls="company-suggestions" aria-expanded="false"></div>
-        <div id="company-suggestions" class="search-suggestions d-none" role="listbox"></div>
+    <div class="row g-2 align-items-center">
+      <div class="col">
+        <div class="input-group"><span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span><input type="search" class="form-control border-start-0" id="company-search" value="{{ search_query }}" placeholder="Въведете начало на име на фирма или ЕИК" aria-label="Филтриране по фирма или ЕИК"></div>
       </div>
-      <div class="col-auto"><button class="btn btn-primary">Търси</button>{% if search_query %}<a class="btn btn-light" href="{% url 'company_list' %}">Изчисти</a>{% endif %}</div>
-    </form>
+      <div class="col-auto"><button type="button" class="btn btn-light" id="clear-company-search">Изчисти</button></div>
+      <div class="col-12"><span class="small text-muted" id="company-search-count"></span></div>
+    </div>
   </div>
   <div class="table-responsive">
     <table class="table table-hover align-middle">
       <thead><tr><th>Фирма</th><th>ЕИК</th><th>Фактуриране</th><th>Карти</th><th class="text-end">Действия</th></tr></thead>
       <tbody>
       {% for company in companies %}
-        <tr>
+        <tr class="company-row" data-company-name="{{ company.name }}" data-company-eik="{{ company.eik }}">
           <td><a class="fw-bold text-decoration-none" href="{% url 'company_transactions' company.id %}">{{ company.name }}</a>{% if company.note %}<div class="small text-muted text-truncate" style="max-width:420px">{{ company.note }}</div>{% endif %}</td>
           <td><span class="font-monospace">{{ company.eik }}</span></td>
           <td>{% if company.is_twice_monthly %}<span class="status-pill warning">2× месечно</span>{% else %}<span class="status-pill">Месечно</span>{% endif %}</td>
           <td>{{ company.card_total }}</td>
           <td><div class="action-group justify-content-end"><a class="btn btn-sm btn-primary" href="{% url 'company_transactions' company.id %}">Отчет</a><a class="btn btn-sm btn-outline-primary" href="{% url 'company_prices' company.id %}" title="История на цените"><i class="bi bi-tags"></i></a><a class="btn btn-sm btn-outline-secondary" href="{% url 'export_company_zip' company.id %}" title="ZIP"><i class="bi bi-download"></i></a><a class="btn btn-sm btn-outline-secondary" href="{% url 'company_edit' company.id %}" title="Редакция"><i class="bi bi-pencil"></i></a></div></td>
         </tr>
-      {% empty %}<tr><td colspan="5"><div class="empty-state"><i class="bi bi-buildings fs-1"></i><h2 class="h5 mt-3">Няма намерени фирми</h2><p>Импортирайте файл с карти или добавете фирма ръчно.</p></div></td></tr>{% endfor %}
+      {% empty %}<tr><td colspan="5"><div class="empty-state"><i class="bi bi-buildings fs-1"></i><h2 class="h5 mt-3">Няма фирми</h2><p>Импортирайте файл с карти или добавете фирма ръчно.</p></div></td></tr>{% endfor %}
+      <tr id="company-filter-empty" class="d-none"><td colspan="5"><div class="empty-state"><i class="bi bi-search fs-1"></i><h2 class="h5 mt-3">Няма съвпадащи фирми</h2><p>Няма име или ЕИК, започващи с въведения текст.</p></div></td></tr>
       </tbody>
     </table>
   </div>
@@ -37,81 +38,38 @@
 <script>
 (() => {
   const input = document.getElementById('company-search');
-  const results = document.getElementById('company-suggestions');
-  if (!input || !results) return;
+  const clearButton = document.getElementById('clear-company-search');
+  const rows = [...document.querySelectorAll('.company-row')];
+  const emptyState = document.getElementById('company-filter-empty');
+  const count = document.getElementById('company-search-count');
+  if (!input) return;
 
-  const endpoint = "{% url 'company_search_suggestions' %}";
-  let timer;
-  let controller;
-  let activeIndex = -1;
-
-  function closeResults() {
-    results.classList.add('d-none');
-    results.innerHTML = '';
-    input.setAttribute('aria-expanded', 'false');
-    activeIndex = -1;
+  function normalize(value) {
+    return value.trim().replace(/\s+/g, ' ').toLocaleUpperCase('bg-BG');
   }
 
-  function setActive(index) {
-    const items = [...results.querySelectorAll('[role="option"]')];
-    if (!items.length) return;
-    activeIndex = (index + items.length) % items.length;
-    items.forEach((item, itemIndex) => item.classList.toggle('active', itemIndex === activeIndex));
-    items[activeIndex].scrollIntoView({block: 'nearest'});
+  function filterCompanies() {
+    const query = normalize(input.value);
+    let visible = 0;
+    rows.forEach(row => {
+      const name = normalize(row.dataset.companyName || '');
+      const eik = (row.dataset.companyEik || '').trim();
+      const matches = !query || name.startsWith(query) || eik.startsWith(query);
+      row.classList.toggle('d-none', !matches);
+      if (matches) visible += 1;
+    });
+    if (emptyState) emptyState.classList.toggle('d-none', visible !== 0 || rows.length === 0);
+    if (count) count.textContent = query ? `Показани фирми: ${visible}` : `Общо фирми: ${rows.length}`;
   }
 
-  function render(companies) {
-    results.innerHTML = '';
-    if (!companies.length) {
-      results.innerHTML = '<div class="search-empty">Няма фирми, започващи с този текст.</div>';
-    } else {
-      companies.forEach(company => {
-        const option = document.createElement('a');
-        option.className = 'search-option';
-        option.href = company.url;
-        option.setAttribute('role', 'option');
-        option.innerHTML = '<span class="search-company-name"></span><span class="search-company-eik"></span>';
-        option.querySelector('.search-company-name').textContent = company.name;
-        option.querySelector('.search-company-eik').textContent = `ЕИК ${company.eik || '—'}`;
-        results.appendChild(option);
-      });
-    }
-    results.classList.remove('d-none');
-    input.setAttribute('aria-expanded', 'true');
-    activeIndex = -1;
-  }
-
-  async function search() {
-    const term = input.value.trim();
-    if (!term) return closeResults();
-    if (controller) controller.abort();
-    controller = new AbortController();
-    try {
-      const response = await fetch(`${endpoint}?term=${encodeURIComponent(term)}`, {
-        signal: controller.signal,
-        headers: {'X-Requested-With': 'XMLHttpRequest'}
-      });
-      if (!response.ok) throw new Error('Search failed');
-      render(await response.json());
-    } catch (error) {
-      if (error.name !== 'AbortError') closeResults();
-    }
-  }
-
-  input.addEventListener('input', () => {
-    clearTimeout(timer);
-    timer = setTimeout(search, 180);
+  input.addEventListener('input', filterCompanies);
+  clearButton.addEventListener('click', () => {
+    input.value = '';
+    input.focus();
+    filterCompanies();
+    window.history.replaceState({}, '', window.location.pathname);
   });
-  input.addEventListener('keydown', event => {
-    const items = [...results.querySelectorAll('[role="option"]')];
-    if (event.key === 'ArrowDown' && items.length) { event.preventDefault(); setActive(activeIndex + 1); }
-    if (event.key === 'ArrowUp' && items.length) { event.preventDefault(); setActive(activeIndex - 1); }
-    if (event.key === 'Enter' && activeIndex >= 0 && items[activeIndex]) { event.preventDefault(); window.location.href = items[activeIndex].href; }
-    if (event.key === 'Escape') closeResults();
-  });
-  document.addEventListener('click', event => {
-    if (!results.contains(event.target) && event.target !== input) closeResults();
-  });
+  filterCompanies();
 })();
 </script>
 {% endblock %}
