@@ -12,6 +12,8 @@ class Company(models.Model):
     class Meta:
         verbose_name = "Фирма"
         verbose_name_plural = "Фирми"
+        ordering = ["name"]
+        indexes = [models.Index(fields=["eik"], name="company_eik_idx")]
 
 class Card(models.Model):
     card_number = models.CharField(max_length=50, unique=True, verbose_name="Номер на карта")
@@ -24,6 +26,7 @@ class Card(models.Model):
     class Meta:
         verbose_name = "Карта"
         verbose_name_plural = "Карти"
+        ordering = ["company__name", "card_number"]
 
 class Price(models.Model):
     date = models.DateField(verbose_name="Дата")
@@ -37,11 +40,17 @@ class Price(models.Model):
     discount = models.DecimalField(max_digits=10, decimal_places=4, default=0, verbose_name="Отстъпка")
 
     def __str__(self):
-        return f"{self.date} - {self.company.name} - {self.product}"
+        company = self.company.name if self.company else self.company_name_tmp or "Без фирма"
+        return f"{self.date} - {company} - {self.product}"
 
     class Meta:
         verbose_name = "Цена"
         verbose_name_plural = "Цени"
+        ordering = ["-date", "-id"]
+        constraints = [
+            models.UniqueConstraint(fields=["date", "company", "product"], name="unique_company_product_price_date")
+        ]
+        indexes = [models.Index(fields=["company", "product", "date"], name="price_lookup_idx")]
 
 class Transaction(models.Model):
     plant = models.CharField(max_length=255, verbose_name="Станция")
@@ -63,3 +72,8 @@ class Transaction(models.Model):
     class Meta:
         verbose_name = "Транзакция"
         verbose_name_plural = "Транзакции"
+        ordering = ["date", "id"]
+        indexes = [
+            models.Index(fields=["card_number"], name="transaction_card_idx"),
+            models.Index(fields=["date"], name="transaction_date_idx"),
+        ]

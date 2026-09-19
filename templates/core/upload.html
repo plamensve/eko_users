@@ -1,50 +1,35 @@
 {% extends 'base.html' %}
-{% load bootstrap4 %}
-
-{% block title %}Качване на файлове - EKO Система{% endblock %}
-
+{% block title %}Импорт на данни · EKO Manager{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card mt-4">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0">Качване на Excel файлове</h4>
-            </div>
-            <div class="card-body">
-                <form method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    {% bootstrap_form form %}
-                    <div class="alert alert-info">
-                        <strong>Инструкции:</strong><br>
-                        1. Първо качете файловете за <strong>карти</strong> и <strong>цени</strong> (ако има промени).<br>
-                        2. След това качете файла с <strong>транзакции</strong> за обработка.
-                    </div>
-                    <button type="submit" class="btn btn-success btn-block"><i class="fas fa-file-import"></i> Импортиране</button>
-                </form>
-
-                <hr class="my-4">
-                <h5>Управление на данните</h5>
-                <div class="row">
-                    <div class="col-md-4">
-                        <a href="{% url 'card_delete_all' %}" class="btn btn-outline-danger btn-block"><i class="fas fa-trash"></i> Изтрий всички карти</a>
-                    </div>
-                    <div class="col-md-4">
-                        <a href="{% url 'price_delete_all' %}" class="btn btn-outline-danger btn-block"><i class="fas fa-trash"></i> Изтрий всички цени</a>
-                    </div>
-                    <div class="col-md-4">
-                        <a href="{% url 'transaction_delete_all' %}" class="btn btn-outline-danger btn-block"><i class="fas fa-trash"></i> Изтрий всички транзакции</a>
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-md-6">
-                        <a href="{% url 'company_delete_all' %}" class="btn btn-outline-danger btn-block"><i class="fas fa-trash-alt"></i> Изтрий всички фирми</a>
-                    </div>
-                    <div class="col-md-6">
-                        <a href="{% url 'relink_data' %}" class="btn btn-warning btn-block"><i class="fas fa-sync"></i> Синхронизирай връзките</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="page-heading">
+  <div><div class="eyebrow">Данни</div><h1 class="page-title">Импорт на Excel файлове</h1><p class="page-subtitle">Файловете се обработват временно и не остават в приложението след импорта.</p></div>
 </div>
+<form method="post" enctype="multipart/form-data" class="surface mb-4">{% csrf_token %}
+  <div class="surface-header"><h2 class="h5 mb-0">Изберете файлове</h2></div>
+  <div class="surface-body">
+    {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="row g-3">
+      <div class="col-lg-4"><div class="upload-zone h-100"><div class="d-flex align-items-center gap-2 mb-3"><i class="bi bi-credit-card fs-4 text-primary"></i><strong>1. Карти и фирми</strong></div>{{ form.cards_file }}{% for error in form.cards_file.errors %}<div class="text-danger small mt-2">{{ error }}</div>{% endfor %}<div class="small text-muted mt-2">Очаквани колони: Company, Name, Number, EIK</div></div></div>
+      <div class="col-lg-4"><div class="upload-zone h-100"><div class="d-flex align-items-center gap-2 mb-3"><i class="bi bi-tags fs-4 text-primary"></i><strong>2. Ценови листи</strong></div>{{ form.prices_files }}{% for error in form.prices_files.errors %}<div class="text-danger small mt-2">{{ error }}</div>{% endfor %}<div class="small text-muted mt-2">Може да изберете няколко файла наведнъж.</div></div></div>
+      <div class="col-lg-4"><div class="upload-zone h-100"><div class="d-flex align-items-center gap-2 mb-3"><i class="bi bi-receipt fs-4 text-primary"></i><strong>3. Транзакции</strong></div>{{ form.transactions_file }}{% for error in form.transactions_file.errors %}<div class="text-danger small mt-2">{{ error }}</div>{% endfor %}<div class="small text-muted mt-2">Новият файл заменя текущия отчетен период.</div></div></div>
+    </div>
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-4">
+      <div class="small text-muted"><i class="bi bi-shield-check me-1"></i>Максимален размер: 15 MB на файл.</div>
+      <button class="btn btn-success btn-lg" type="submit"><i class="bi bi-cloud-arrow-up me-2"></i>Импортирай избраните файлове</button>
+    </div>
+  </div>
+</form>
+<section class="surface danger-zone">
+  <div class="surface-header"><h2 class="h5 text-danger mb-0">Управление на данните</h2></div>
+  <div class="surface-body">
+    <p class="text-muted">Действията по-долу изискват отделно потвърждение.</p>
+    <div class="action-group">
+      <a class="btn btn-outline-danger" href="{% url 'card_delete_all' %}">Изтрий всички карти</a>
+      <a class="btn btn-outline-danger" href="{% url 'price_delete_all' %}">Изтрий всички цени</a>
+      <a class="btn btn-outline-danger" href="{% url 'transaction_delete_all' %}">Изтрий всички транзакции</a>
+      <a class="btn btn-outline-danger" href="{% url 'company_delete_all' %}">Изтрий всички фирми</a>
+      <form method="post" action="{% url 'relink_data' %}">{% csrf_token %}<button class="btn btn-outline-primary" type="submit"><i class="bi bi-arrow-repeat me-1"></i>Синхронизирай връзките</button></form>
+    </div>
+  </div>
+</section>
 {% endblock %}

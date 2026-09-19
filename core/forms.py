@@ -1,5 +1,16 @@
 from django import forms
 
+
+MAX_UPLOAD_SIZE = 15 * 1024 * 1024
+
+
+def validate_excel_file(upload):
+    if not upload.name.lower().endswith((".xlsx", ".xls")):
+        raise forms.ValidationError("Разрешени са само Excel файлове (.xlsx или .xls).")
+    if upload.size > MAX_UPLOAD_SIZE:
+        raise forms.ValidationError("Файлът е по-голям от допустимите 15 MB.")
+    return upload
+
 class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
 
@@ -17,9 +28,15 @@ class MultipleFileField(forms.FileField):
         return result
 
 class UploadFileForm(forms.Form):
-    cards_file = forms.FileField(required=False, label="Файл с карти (cards.xlsx)")
-    prices_files = MultipleFileField(required=False, label="Файл(ове) с цени (prices.xlsx)")
-    transactions_file = forms.FileField(required=False, label="Файл с транзакции (eko_transactions.xlsx)")
+    cards_file = forms.FileField(required=False, label="Карти", validators=[validate_excel_file], widget=forms.FileInput(attrs={"accept": ".xlsx,.xls"}))
+    prices_files = MultipleFileField(required=False, label="Ценови листи", validators=[validate_excel_file], widget=MultipleFileInput(attrs={"accept": ".xlsx,.xls"}))
+    transactions_file = forms.FileField(required=False, label="Транзакции", validators=[validate_excel_file], widget=forms.FileInput(attrs={"accept": ".xlsx,.xls"}))
+
+    def clean(self):
+        cleaned = super().clean()
+        if not any((cleaned.get("cards_file"), cleaned.get("prices_files"), cleaned.get("transactions_file"))):
+            raise forms.ValidationError("Изберете поне един файл за импортиране.")
+        return cleaned
 
 from .models import Company, Card
 
@@ -28,9 +45,10 @@ class CompanyForm(forms.ModelForm):
         model = Company
         fields = ['name', 'eik', 'is_twice_monthly', 'note']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'eik': forms.TextInput(attrs={'class': 'form-control'}),
-            'note': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Наименование на фирмата'}),
+            'eik': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ЕИК'}),
+            'is_twice_monthly': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'note': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Забележка към отчетите'}),
         }
 
 class CardForm(forms.ModelForm):
@@ -40,5 +58,5 @@ class CardForm(forms.ModelForm):
         widgets = {
             'card_number': forms.TextInput(attrs={'class': 'form-control'}),
             'vehicle': forms.TextInput(attrs={'class': 'form-control'}),
-            'company': forms.Select(attrs={'class': 'form-control'}),
+            'company': forms.Select(attrs={'class': 'form-select'}),
         }

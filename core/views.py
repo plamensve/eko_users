@@ -3,16 +3,26 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import UploadFileForm, CompanyForm, CardForm
 from .utils import import_cards, import_prices, import_transactions, export_all_companies_zip, get_company_report_data, \
-    export_single_company_zip, normalize_text, relink_data
+    export_single_company_zip, relink_data
 from .models import Transaction, Company, Price, Card
 import os
-from django.conf import settings
-from django.db.models import Max, Q
+import tempfile
+from django.db.models import Count, Max, Min, Q
+from django.views.decorators.http import require_POST
 
 
 @login_required
 def index(request):
-    return render(request, 'core/index.html')
+    period = Transaction.objects.aggregate(start=Min('date'), end=Max('date'))
+    return render(request, 'core/index.html', {
+        'company_count': Company.objects.count(),
+        'card_count': Card.objects.count(),
+        'transaction_count': Transaction.objects.count(),
+        'price_count': Price.objects.count(),
+        'unlinked_transactions': Transaction.objects.filter(card__isnull=True).count(),
+        'period_start': period['start'],
+        'period_end': period['end'],
+    })
 
 
 @login_required
@@ -20,38 +30,34 @@ def upload_files(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            if not os.path.exists(settings.MEDIA_ROOT):
-                os.makedirs(settings.MEDIA_ROOT)
+            def process_upload(upload, importer):
+                suffix = os.path.splitext(upload.name)[1].lower()
+                with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as temporary:
+                    for chunk in upload.chunks():
+                        temporary.write(chunk)
+                    path = temporary.name
+                try:
+                    return importer(path)
+                finally:
+                    try:
+                        os.unlink(path)
+                    except OSError:
+                        pass
 
-            if request.FILES.get('cards_file'):
-                file = request.FILES['cards_file']
-                path = os.path.join(settings.MEDIA_ROOT, 'temp_cards.xlsx')
-                with open(path, 'wb+') as destination:
-                    for chunk in file.chunks():
-                        destination.write(chunk)
-                import_cards(path)
-                messages.success(request, "Картите бяха импортирани успешно.")
-
-            if request.FILES.getlist('prices_files'):
-                files = request.FILES.getlist('prices_files')
-                for i, file in enumerate(files):
-                    path = os.path.join(settings.MEDIA_ROOT, f'temp_prices_{i}.xlsx')
-                    with open(path, 'wb+') as destination:
-                        for chunk in file.chunks():
-                            destination.write(chunk)
-                    import_prices(path)
-                messages.success(request, f"Цените ({len(files)} файла) бяха импортирани успешно.")
-
-            if request.FILES.get('transactions_file'):
-                file = request.FILES['transactions_file']
-                path = os.path.join(settings.MEDIA_ROOT, 'temp_transactions.xlsx')
-                with open(path, 'wb+') as destination:
-                    for chunk in file.chunks():
-                        destination.write(chunk)
-                Transaction.objects.all().delete()
-                import_transactions(path)
-                messages.success(request, "Транзакциите бяха импортирани успешно.")
-
+            try:
+                if request.FILES.get('cards_file'):
+                    result = process_upload(request.FILES['cards_file'], import_cards)
+                    messages.success(request, f"Карти: {result.created} нови, {result.updated} обновени, {result.skipped} пропуснати.")
+                price_files = request.FILES.getlist('prices_files')
+                if price_files:
+                    totals = [process_upload(upload, import_prices) for upload in price_files]
+                    messages.success(request, f"Цени: {sum(r.created for r in totals)} нови, {sum(r.updated for r in totals)} обновени, {sum(r.skipped for r in totals)} пропуснати.")
+                if request.FILES.get('transactions_file'):
+                    result = process_upload(request.FILES['transactions_file'], import_transactions)
+                    messages.success(request, f"Транзакции: {result.created} импортирани, {result.skipped} пропуснати. Предишният отчетен период е заменен.")
+            except (ValueError, KeyError, OSError) as exc:
+                messages.error(request, f"Импортът беше прекратен: {exc}")
+                return render(request, 'core/upload.html', {'form': form})
             return redirect('index')
     else:
         form = UploadFileForm()
@@ -61,11 +67,10 @@ def upload_files(request):
 @login_required
 def company_list(request):
     search_query = request.GET.get('search', '')
-    companies = Company.objects.all().order_by('name')
+    companies = Company.objects.annotate(card_total=Count('cards')).order_by('name')
 
     if search_query:
-        normalized_query = normalize_text(search_query)
-        companies = companies.filter(name__icontains=normalized_query)
+        companies = companies.filter(Q(name__icontains=search_query) | Q(eik__icontains=search_query))
 
     return render(request, 'core/company_list.html', {
         'companies': companies,
@@ -82,8 +87,7 @@ import urllib.parse
 def company_search_suggestions(request):
     query = request.GET.get('term', '')
     if len(query) >= 2:
-        normalized_query = normalize_text(query)
-        companies = Company.objects.filter(name__icontains=normalized_query).order_by('name')[:10]
+        companies = Company.objects.filter(Q(name__icontains=query) | Q(eik__icontains=query)).order_by('name')[:10]
         results = [company.name for company in companies]
         return JsonResponse(results, safe=False)
     return JsonResponse([], safe=False)
@@ -384,6 +388,7 @@ def change_password(request):
 
 
 @login_required
+@require_POST
 def relink_data_view(request):
     count_t, count_p = relink_data()
     messages.success(request, f"Успешно свързани: {count_t} транзакции и {count_p} цени.")
