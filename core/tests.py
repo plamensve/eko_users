@@ -24,10 +24,18 @@ class PricingRulesTests(TestCase):
         self.assertEqual(result.gta_price, Decimal("1.550"))
         self.assertEqual(result.profit, Decimal("1.40"))
 
-    def test_lpg_uses_special_profit_rule(self):
+    def test_lpg_uses_reference_profit_rule_for_mixed_alphabet_name(self):
         record = SimpleNamespace(margin=0, discount=Decimal("0.025"), final_price=Decimal("0.700"), eko_price=Decimal("0.690"))
-        result = calculate_pricing(quantity="100", transaction_price="0.750", product="E GAS LPG", price_record=record)
+        result = calculate_pricing(quantity="100", transaction_price="0.750", product="Е GАS LРG", price_record=record)
         self.assertEqual(result.profit, Decimal("-1.00"))
+
+    def test_lpg_profit_changes_with_discount(self):
+        without_discount = SimpleNamespace(margin=0, discount=0, final_price=Decimal("0.700"), eko_price=Decimal("0.690"))
+        with_discount = SimpleNamespace(margin=0, discount=Decimal("0.100"), final_price=Decimal("0.700"), eko_price=Decimal("0.690"))
+        first = calculate_pricing(quantity="37.5", transaction_price="0.750", product="E GAS LPG", price_record=without_discount)
+        second = calculate_pricing(quantity="37.5", transaction_price="0.750", product="Е GАS LРG", price_record=with_discount)
+        self.assertEqual(first.profit, Decimal("0.56"))
+        self.assertEqual(second.profit, Decimal("-3.19"))
 
     def test_negative_discount_price_is_clamped_to_zero(self):
         record = SimpleNamespace(margin=0, discount=Decimal("2.000"), final_price=0, eko_price=Decimal("1.000"))

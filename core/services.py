@@ -13,6 +13,7 @@ ZERO = Decimal("0")
 PRICE_STEP = Decimal("0.001")
 MONEY_STEP = Decimal("0.01")
 QTY_STEP = Decimal("0.01")
+E_GAS_LPG_BASE_PROFIT_PER_LITER = Decimal("0.015")
 
 
 def as_decimal(value, default=ZERO):
@@ -35,6 +36,15 @@ def money2(value):
 
 def quantity2(value):
     return as_decimal(value).quantize(QTY_STEP, rounding=ROUND_HALF_UP)
+
+
+def normalize_product_key(value):
+    """Normalize visually identical Latin/Cyrillic letters in product names."""
+    text = " ".join(str(value or "").upper().split())
+    return text.translate(str.maketrans({
+        "А": "A", "В": "B", "Е": "E", "К": "K", "М": "M",
+        "Н": "H", "О": "O", "Р": "P", "С": "C", "Т": "T", "Х": "X",
+    }))
 
 
 @dataclass(frozen=True)
@@ -71,9 +81,10 @@ def calculate_pricing(*, quantity, transaction_price, product, price_record=None
     else:
         gta_price = price3(eko_price)
 
-    normalized_product = " ".join(str(product or "").upper().split())
-    if normalized_product in {"E GAS LPG", "Е GAS LPG", "Е GАS LPG"}:
-        profit = (Decimal("0.015") - discount) * qty
+    normalized_product = normalize_product_key(product)
+    if normalized_product == "E GAS LPG":
+        # Rule from the reference EKO pipeline.
+        profit = (E_GAS_LPG_BASE_PROFIT_PER_LITER - discount) * qty
     elif margin > ZERO:
         profit = margin * qty
     elif discount > ZERO:
