@@ -109,6 +109,23 @@ class CompanySearchTests(TestCase):
         self.assertNotContains(response, 'id="company-suggestions"')
 
 
+class CardListTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username="cards", password="safe-test-password")
+        self.client.force_login(self.user)
+        company = Company.objects.create(name="АВТО ТРАНС ПЕТКОВ", eik="123456789")
+        Card.objects.create(card_number="700001", vehicle="СВ 1234 АВ", company=company)
+
+    def test_card_list_uses_professional_filterable_table(self):
+        response = self.client.get(reverse("card_list"))
+        self.assertContains(response, 'class="page-heading"')
+        self.assertContains(response, 'id="card-search"')
+        self.assertContains(response, 'class="card-row"')
+        self.assertContains(response, 'class="card-list-number text-center fw-semibold text-muted"')
+        self.assertContains(response, "АВТО ТРАНС ПЕТКОВ")
+        self.assertContains(response, "700001")
+
+
 class PriceUploadTests(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(username="importer", password="safe-test-password")

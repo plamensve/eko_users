@@ -1,48 +1,80 @@
 {% extends 'base.html' %}
-
-{% block title %}Списък на картите - EKO Система{% endblock %}
-
+{% block title %}Карти · EKO Manager{% endblock %}
 {% block content %}
-<div class="mt-4">
-    <div class="d-flex justify-content-between align-items-center">
-        <h2>Списък на картите</h2>
-        <div>
-            <a href="{% url 'card_add' %}" class="btn btn-primary"><i class="fas fa-plus"></i> Добави карта</a>
-            {% if cards %}
-            <a href="{% url 'card_delete_all' %}" class="btn btn-danger"><i class="fas fa-trash-alt"></i> Изтрий всички карти</a>
-            {% endif %}
-        </div>
-    </div>
-    <div class="table-responsive mt-3">
-        <table class="table table-hover table-sm">
-            <thead class="thead-dark">
-                <tr>
-                    <th>#</th>
-                    <th>Номер на карта</th>
-                    <th>Превозно средство</th>
-                    <th>Фирма</th>
-                    <th>Действия</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for card in cards %}
-                <tr>
-                    <td>{{ forloop.counter }}</td>
-                    <td>{{ card.card_number }}</td>
-                    <td>{{ card.vehicle }}</td>
-                    <td>{{ card.company.name }}</td>
-                    <td>
-                        <a href="{% url 'card_edit' card.id %}" class="btn btn-sm btn-outline-info">Редактирай</a>
-                        <a href="{% url 'card_delete' card.id %}" class="btn btn-sm btn-outline-danger">Изтрий</a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="text-center">Няма намерени карти.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+<div class="page-heading">
+  <div><div class="eyebrow">Клиенти</div><h1 class="page-title">Карти</h1><p class="page-subtitle">Управление на горивните карти, автомобилите и свързаните фирми.</p></div>
+  <div class="action-group">
+    <a class="btn btn-success" href="{% url 'card_add' %}"><i class="bi bi-plus-lg me-1"></i>Добави карта</a>
+    {% if cards %}<a class="btn btn-outline-danger" href="{% url 'card_delete_all' %}"><i class="bi bi-trash3 me-1"></i>Изтрий всички</a>{% endif %}
+  </div>
 </div>
+<section class="surface">
+  <div class="surface-header">
+    <div class="row g-2 align-items-center">
+      <div class="col">
+        <div class="input-group"><span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span><input type="search" class="form-control border-start-0" id="card-search" placeholder="Въведете начало на номер, автомобил или фирма" aria-label="Филтриране на карти"></div>
+      </div>
+      <div class="col-auto"><button type="button" class="btn btn-light" id="clear-card-search">Изчисти</button></div>
+      <div class="col-12"><span class="small text-muted" id="card-search-count"></span></div>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead><tr><th class="text-center" style="width:64px">№</th><th>Номер на карта</th><th>Превозно средство</th><th>Фирма</th><th class="text-end">Действия</th></tr></thead>
+      <tbody>
+      {% for card in cards %}
+        <tr class="card-row" data-card-number="{{ card.card_number }}" data-card-vehicle="{{ card.vehicle|default:'' }}" data-company-name="{{ card.company.name }}" data-company-eik="{{ card.company.eik }}">
+          <td class="card-list-number text-center fw-semibold text-muted">{{ forloop.counter }}</td>
+          <td><span class="font-monospace fw-semibold">{{ card.card_number }}</span></td>
+          <td>{% if card.vehicle %}{{ card.vehicle }}{% else %}<span class="text-muted">Не е посочено</span>{% endif %}</td>
+          <td><a class="fw-bold text-decoration-none" href="{% url 'company_transactions' card.company.id %}">{{ card.company.name }}</a><div class="small text-muted font-monospace">ЕИК {{ card.company.eik }}</div></td>
+          <td><div class="action-group justify-content-end"><a class="btn btn-sm btn-outline-secondary" href="{% url 'card_edit' card.id %}" title="Редакция" aria-label="Редакция на карта {{ card.card_number }}"><i class="bi bi-pencil"></i></a><a class="btn btn-sm btn-outline-danger" href="{% url 'card_delete' card.id %}" title="Изтриване" aria-label="Изтриване на карта {{ card.card_number }}"><i class="bi bi-trash3"></i></a></div></td>
+        </tr>
+      {% empty %}<tr><td colspan="5"><div class="empty-state"><i class="bi bi-credit-card fs-1"></i><h2 class="h5 mt-3">Няма карти</h2><p>Импортирайте файл с карти или добавете карта ръчно.</p></div></td></tr>{% endfor %}
+      <tr id="card-filter-empty" class="d-none"><td colspan="5"><div class="empty-state"><i class="bi bi-search fs-1"></i><h2 class="h5 mt-3">Няма съвпадащи карти</h2><p>Няма номер, автомобил, фирма или ЕИК, започващи с въведения текст.</p></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+(() => {
+  const input = document.getElementById('card-search');
+  const clearButton = document.getElementById('clear-card-search');
+  const rows = [...document.querySelectorAll('.card-row')];
+  const emptyState = document.getElementById('card-filter-empty');
+  const count = document.getElementById('card-search-count');
+  if (!input) return;
+
+  function normalize(value) {
+    return value.trim().replace(/\s+/g, ' ').toLocaleUpperCase('bg-BG');
+  }
+
+  function filterCards() {
+    const query = normalize(input.value);
+    let visible = 0;
+    rows.forEach(row => {
+      const values = [row.dataset.cardNumber, row.dataset.cardVehicle, row.dataset.companyName, row.dataset.companyEik].map(value => normalize(value || ''));
+      const matches = !query || values.some(value => value.startsWith(query));
+      row.classList.toggle('d-none', !matches);
+      if (matches) {
+        visible += 1;
+        const number = row.querySelector('.card-list-number');
+        if (number) number.textContent = visible;
+      }
+    });
+    if (emptyState) emptyState.classList.toggle('d-none', visible !== 0 || rows.length === 0);
+    if (count) count.textContent = query ? `Показани карти: ${visible}` : `Общо карти: ${rows.length}`;
+  }
+
+  input.addEventListener('input', filterCards);
+  clearButton.addEventListener('click', () => {
+    input.value = '';
+    input.focus();
+    filterCards();
+  });
+  filterCards();
+})();
+</script>
 {% endblock %}
