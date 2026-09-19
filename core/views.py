@@ -3,12 +3,13 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import UploadFileForm, CompanyForm, CardForm
 from .utils import import_cards, import_prices, import_transactions, export_all_companies_zip, get_company_report_data, \
-    export_single_company_zip, relink_data
+    export_single_company_zip, normalize_text, relink_data
 from .models import Transaction, Company, Price, Card
 import os
 import tempfile
 from django.db.models import Count, Max, Min, Q
 from django.views.decorators.http import require_POST
+from django.urls import reverse
 
 
 @login_required
@@ -70,7 +71,10 @@ def company_list(request):
     companies = Company.objects.annotate(card_total=Count('cards')).order_by('name')
 
     if search_query:
-        companies = companies.filter(Q(name__icontains=search_query) | Q(eik__icontains=search_query))
+        normalized_query = normalize_text(search_query)
+        companies = companies.filter(
+            Q(name__startswith=normalized_query) | Q(eik__startswith=search_query.strip())
+        )
 
     return render(request, 'core/company_list.html', {
         'companies': companies,
@@ -85,10 +89,21 @@ import urllib.parse
 
 @login_required
 def company_search_suggestions(request):
-    query = request.GET.get('term', '')
-    if len(query) >= 2:
-        companies = Company.objects.filter(Q(name__icontains=query) | Q(eik__icontains=query)).order_by('name')[:10]
-        results = [company.name for company in companies]
+    query = request.GET.get('term', '').strip()
+    if query:
+        normalized_query = normalize_text(query)
+        companies = Company.objects.filter(
+            Q(name__startswith=normalized_query) | Q(eik__startswith=query)
+        ).order_by('name')[:20]
+        results = [
+            {
+                'id': company.id,
+                'name': company.name,
+                'eik': company.eik,
+                'url': reverse('company_transactions', args=[company.id]),
+            }
+            for company in companies
+        ]
         return JsonResponse(results, safe=False)
     return JsonResponse([], safe=False)
 

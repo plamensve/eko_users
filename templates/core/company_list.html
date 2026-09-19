@@ -7,8 +7,11 @@
 </div>
 <section class="surface">
   <div class="surface-header">
-    <form method="get" class="row g-2 align-items-center">
-      <div class="col"><div class="input-group"><span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span><input class="form-control border-start-0" name="search" value="{{ search_query }}" placeholder="Търсене по име или ЕИК"></div></div>
+    <form method="get" id="company-search-form" class="row g-2 align-items-center" autocomplete="off">
+      <div class="col position-relative">
+        <div class="input-group"><span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span><input class="form-control border-start-0" id="company-search" name="search" value="{{ search_query }}" placeholder="Започнете да въвеждате име на фирма или ЕИК" aria-label="Търсене по фирма или ЕИК" aria-autocomplete="list" aria-controls="company-suggestions" aria-expanded="false"></div>
+        <div id="company-suggestions" class="search-suggestions d-none" role="listbox"></div>
+      </div>
       <div class="col-auto"><button class="btn btn-primary">Търси</button>{% if search_query %}<a class="btn btn-light" href="{% url 'company_list' %}">Изчисти</a>{% endif %}</div>
     </form>
   </div>
@@ -29,4 +32,86 @@
     </table>
   </div>
 </section>
+{% endblock %}
+{% block scripts %}
+<script>
+(() => {
+  const input = document.getElementById('company-search');
+  const results = document.getElementById('company-suggestions');
+  if (!input || !results) return;
+
+  const endpoint = "{% url 'company_search_suggestions' %}";
+  let timer;
+  let controller;
+  let activeIndex = -1;
+
+  function closeResults() {
+    results.classList.add('d-none');
+    results.innerHTML = '';
+    input.setAttribute('aria-expanded', 'false');
+    activeIndex = -1;
+  }
+
+  function setActive(index) {
+    const items = [...results.querySelectorAll('[role="option"]')];
+    if (!items.length) return;
+    activeIndex = (index + items.length) % items.length;
+    items.forEach((item, itemIndex) => item.classList.toggle('active', itemIndex === activeIndex));
+    items[activeIndex].scrollIntoView({block: 'nearest'});
+  }
+
+  function render(companies) {
+    results.innerHTML = '';
+    if (!companies.length) {
+      results.innerHTML = '<div class="search-empty">Няма фирми, започващи с този текст.</div>';
+    } else {
+      companies.forEach(company => {
+        const option = document.createElement('a');
+        option.className = 'search-option';
+        option.href = company.url;
+        option.setAttribute('role', 'option');
+        option.innerHTML = '<span class="search-company-name"></span><span class="search-company-eik"></span>';
+        option.querySelector('.search-company-name').textContent = company.name;
+        option.querySelector('.search-company-eik').textContent = `ЕИК ${company.eik || '—'}`;
+        results.appendChild(option);
+      });
+    }
+    results.classList.remove('d-none');
+    input.setAttribute('aria-expanded', 'true');
+    activeIndex = -1;
+  }
+
+  async function search() {
+    const term = input.value.trim();
+    if (!term) return closeResults();
+    if (controller) controller.abort();
+    controller = new AbortController();
+    try {
+      const response = await fetch(`${endpoint}?term=${encodeURIComponent(term)}`, {
+        signal: controller.signal,
+        headers: {'X-Requested-With': 'XMLHttpRequest'}
+      });
+      if (!response.ok) throw new Error('Search failed');
+      render(await response.json());
+    } catch (error) {
+      if (error.name !== 'AbortError') closeResults();
+    }
+  }
+
+  input.addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(search, 180);
+  });
+  input.addEventListener('keydown', event => {
+    const items = [...results.querySelectorAll('[role="option"]')];
+    if (event.key === 'ArrowDown' && items.length) { event.preventDefault(); setActive(activeIndex + 1); }
+    if (event.key === 'ArrowUp' && items.length) { event.preventDefault(); setActive(activeIndex - 1); }
+    if (event.key === 'Enter' && activeIndex >= 0 && items[activeIndex]) { event.preventDefault(); window.location.href = items[activeIndex].href; }
+    if (event.key === 'Escape') closeResults();
+  });
+  document.addEventListener('click', event => {
+    if (!results.contains(event.target) && event.target !== input) closeResults();
+  });
+})();
+</script>
 {% endblock %}

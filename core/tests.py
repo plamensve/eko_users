@@ -78,3 +78,27 @@ class AccessTests(TestCase):
         user = get_user_model().objects.create_user(username="operator2", password="safe-test-password")
         self.client.force_login(user)
         self.assertEqual(self.client.get(reverse("relink_data")).status_code, 405)
+
+
+class CompanySearchTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username="searcher", password="safe-test-password")
+        self.client.force_login(self.user)
+        self.auto_petkov = Company.objects.create(name="АВТО ТРАНС ПЕТКОВ", eik="123456789")
+        Company.objects.create(name="АВТО СЕРВИЗ ЕООД", eik="987654321")
+        Company.objects.create(name="ТРАНС АВТО ЕООД", eik="555555555")
+
+    def test_suggestions_match_company_name_from_the_beginning(self):
+        response = self.client.get(reverse("company_search_suggestions"), {"term": "авт"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([item["name"] for item in response.json()], ["АВТО СЕРВИЗ ЕООД", "АВТО ТРАНС ПЕТКОВ"])
+
+    def test_suggestions_match_eik_from_the_beginning(self):
+        response = self.client.get(reverse("company_search_suggestions"), {"term": "123"})
+        self.assertEqual(response.json()[0]["id"], self.auto_petkov.id)
+
+    def test_filtered_company_list_uses_the_same_prefix_rule(self):
+        response = self.client.get(reverse("company_list"), {"search": "авт"})
+        self.assertContains(response, "АВТО ТРАНС ПЕТКОВ")
+        self.assertContains(response, "АВТО СЕРВИЗ ЕООД")
+        self.assertNotContains(response, "ТРАНС АВТО ЕООД")
