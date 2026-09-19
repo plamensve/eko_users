@@ -4,34 +4,57 @@
 <div class="page-heading">
   <div><div class="eyebrow">Данни</div><h1 class="page-title">Импорт на Excel файлове</h1><p class="page-subtitle">Файловете се обработват временно и не остават в приложението след импорта.</p></div>
 </div>
-<form method="post" enctype="multipart/form-data" class="surface mb-4">{% csrf_token %}
-  <div class="surface-header"><h2 class="h5 mb-0">Изберете файлове</h2></div>
-  <div class="surface-body">
-    {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
-    <div class="row g-3">
-      <div class="col-lg-4"><div class="upload-zone h-100"><div class="d-flex align-items-center gap-2 mb-3"><i class="bi bi-credit-card fs-4 text-primary"></i><strong>1. Карти и фирми</strong></div>{{ form.cards_file }}{% for error in form.cards_file.errors %}<div class="text-danger small mt-2">{{ error }}</div>{% endfor %}<div class="small text-muted mt-2">Очаквани колони: Company, Name, Number, EIK</div></div></div>
-      <div class="col-lg-4"><div class="upload-zone h-100"><div class="d-flex align-items-center gap-2 mb-3"><i class="bi bi-tags fs-4 text-primary"></i><strong>2. Ценови листи</strong></div>{{ form.prices_files }}{% for error in form.prices_files.errors %}<div class="text-danger small mt-2">{{ error }}</div>{% endfor %}<div class="small text-muted mt-2">Изберете до 20 файла наведнъж.</div><div id="selected-price-files" class="small mt-2 fw-semibold text-primary"></div></div></div>
-      <div class="col-lg-4"><div class="upload-zone h-100"><div class="d-flex align-items-center gap-2 mb-3"><i class="bi bi-receipt fs-4 text-primary"></i><strong>3. Транзакции</strong></div>{{ form.transactions_file }}{% for error in form.transactions_file.errors %}<div class="text-danger small mt-2">{{ error }}</div>{% endfor %}<div class="small text-muted mt-2">Новият файл заменя текущия отчетен период.</div></div></div>
-    </div>
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-4">
-      <div class="small text-muted"><i class="bi bi-shield-check me-1"></i>Максимален размер: 15 MB на файл.</div>
-      <button class="btn btn-success btn-lg" type="submit"><i class="bi bi-cloud-arrow-up me-2"></i>Импортирай избраните файлове</button>
-    </div>
+<div class="row g-4 align-items-start">
+  <div class="col-xl-8">
+    <form method="post" enctype="multipart/form-data" class="surface import-panel">{% csrf_token %}
+      <div class="surface-header d-flex align-items-center justify-content-between gap-3">
+        <div><h2 class="h5 mb-1">Изберете файлове</h2><div class="small text-muted">Може да комбинирате различните видове файлове в един импорт.</div></div>
+        <span class="status-pill"><i class="bi bi-shield-check"></i>Защитена обработка</span>
+      </div>
+      <div class="surface-body">
+        {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="d-grid gap-3">
+          <div class="upload-zone upload-step">
+            <div class="upload-step-icon"><i class="bi bi-credit-card"></i></div>
+            <div class="upload-step-content"><div class="upload-step-title"><span>01</span> Карти и фирми</div><div class="small text-muted mb-2">Очаквани колони: Company, Name, Number, EIK</div>{{ form.cards_file }}{% for error in form.cards_file.errors %}<div class="text-danger small mt-2">{{ error }}</div>{% endfor %}</div>
+          </div>
+          <div class="upload-zone upload-step">
+            <div class="upload-step-icon"><i class="bi bi-tags"></i></div>
+            <div class="upload-step-content"><div class="upload-step-title"><span>02</span> Ценови листи</div><div class="small text-muted mb-2">Изберете едновременно до 20 файла.</div>{{ form.prices_files }}{% for error in form.prices_files.errors %}<div class="text-danger small mt-2">{{ error }}</div>{% endfor %}<div id="selected-price-files" class="small mt-2 fw-semibold text-primary"></div></div>
+          </div>
+          <div class="upload-zone upload-step">
+            <div class="upload-step-icon"><i class="bi bi-receipt"></i></div>
+            <div class="upload-step-content"><div class="upload-step-title"><span>03</span> Транзакции</div><div class="small text-muted mb-2">Новият файл заменя текущия отчетен период.</div>{{ form.transactions_file }}{% for error in form.transactions_file.errors %}<div class="text-danger small mt-2">{{ error }}</div>{% endfor %}</div>
+          </div>
+        </div>
+        <div class="import-footer">
+          <div class="small text-muted"><i class="bi bi-info-circle me-1"></i>Excel файлове до 15 MB всеки.</div>
+          <button class="btn btn-success btn-lg" type="submit"><i class="bi bi-cloud-arrow-up me-2"></i>Импортирай файловете</button>
+        </div>
+      </div>
+    </form>
   </div>
-</form>
-<section class="surface danger-zone">
-  <div class="surface-header"><h2 class="h5 text-danger mb-0">Управление на данните</h2></div>
-  <div class="surface-body">
-    <p class="text-muted">Действията по-долу изискват отделно потвърждение.</p>
-    <div class="action-group">
-      <a class="btn btn-outline-danger" href="{% url 'card_delete_all' %}">Изтрий всички карти</a>
-      <a class="btn btn-outline-danger" href="{% url 'price_delete_all' %}">Изтрий всички цени</a>
-      <a class="btn btn-outline-danger" href="{% url 'transaction_delete_all' %}">Изтрий всички транзакции</a>
-      <a class="btn btn-outline-danger" href="{% url 'company_delete_all' %}">Изтрий всички фирми</a>
-      <form method="post" action="{% url 'relink_data' %}">{% csrf_token %}<button class="btn btn-outline-primary" type="submit"><i class="bi bi-arrow-repeat me-1"></i>Синхронизирай връзките</button></form>
+
+  <aside class="col-xl-4" aria-label="Управление на данните">
+    <div class="management-sidebar">
+      <section class="surface overflow-hidden">
+        <div class="surface-header"><div class="eyebrow mb-1">Системни действия</div><h2 class="h5 mb-0">Управление на данните</h2></div>
+        <div class="surface-body">
+          <p class="small text-muted">Поддръжка на връзките и изчистване на отделни групи данни.</p>
+          <form method="post" action="{% url 'relink_data' %}" class="mb-4">{% csrf_token %}<button class="management-action sync" type="submit"><span class="management-icon"><i class="bi bi-arrow-repeat"></i></span><span><strong>Синхронизирай връзките</strong><small>Свързва карти, фирми, цени и транзакции</small></span><i class="bi bi-chevron-right ms-auto"></i></button></form>
+          <div class="danger-label"><i class="bi bi-exclamation-triangle me-1"></i>Опасна зона</div>
+          <p class="small text-muted mt-2">Всяко изтриване отваря отделен екран за потвърждение.</p>
+          <nav class="management-list" aria-label="Действия за изтриване">
+            <a class="management-action danger" href="{% url 'transaction_delete_all' %}"><span class="management-icon"><i class="bi bi-receipt-cutoff"></i></span><span><strong>Транзакции</strong><small>Изтрий текущия отчетен период</small></span><i class="bi bi-chevron-right ms-auto"></i></a>
+            <a class="management-action danger" href="{% url 'price_delete_all' %}"><span class="management-icon"><i class="bi bi-tags"></i></span><span><strong>Ценови листи</strong><small>Изтрий цялата история на цените</small></span><i class="bi bi-chevron-right ms-auto"></i></a>
+            <a class="management-action danger" href="{% url 'card_delete_all' %}"><span class="management-icon"><i class="bi bi-credit-card"></i></span><span><strong>Карти</strong><small>Изтрий всички горивни карти</small></span><i class="bi bi-chevron-right ms-auto"></i></a>
+            <a class="management-action danger" href="{% url 'company_delete_all' %}"><span class="management-icon"><i class="bi bi-buildings"></i></span><span><strong>Фирми</strong><small>Изтрий всички клиентски профили</small></span><i class="bi bi-chevron-right ms-auto"></i></a>
+          </nav>
+        </div>
+      </section>
     </div>
-  </div>
-</section>
+  </aside>
+</div>
 {% endblock %}
 {% block scripts %}
 <script>
