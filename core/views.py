@@ -52,14 +52,20 @@ def upload_files(request):
                 price_files = request.FILES.getlist('prices_files')
                 if price_files:
                     totals = [process_upload(upload, import_prices) for upload in price_files]
-                    messages.success(request, f"Цени: {sum(r.created for r in totals)} нови, {sum(r.updated for r in totals)} обновени, {sum(r.skipped for r in totals)} пропуснати.")
+                    messages.success(
+                        request,
+                        f"Цените са импортирани успешно. Обработени файлове: {len(price_files)}; "
+                        f"нови записи: {sum(r.created for r in totals)}; "
+                        f"обновени: {sum(r.updated for r in totals)}; "
+                        f"пропуснати: {sum(r.skipped for r in totals)}."
+                    )
                 if request.FILES.get('transactions_file'):
                     result = process_upload(request.FILES['transactions_file'], import_transactions)
                     messages.success(request, f"Транзакции: {result.created} импортирани, {result.skipped} пропуснати. Предишният отчетен период е заменен.")
             except (ValueError, KeyError, OSError) as exc:
                 messages.error(request, f"Импортът беше прекратен: {exc}")
                 return render(request, 'core/upload.html', {'form': form})
-            return redirect('index')
+            return redirect('upload')
     else:
         form = UploadFileForm()
     return render(request, 'core/upload.html', {'form': form})

@@ -2,6 +2,7 @@ from django import forms
 
 
 MAX_UPLOAD_SIZE = 15 * 1024 * 1024
+MAX_PRICE_FILES = 20
 
 
 def validate_excel_file(upload):
@@ -31,6 +32,15 @@ class UploadFileForm(forms.Form):
     cards_file = forms.FileField(required=False, label="Карти", validators=[validate_excel_file], widget=forms.FileInput(attrs={"accept": ".xlsx,.xls"}))
     prices_files = MultipleFileField(required=False, label="Ценови листи", validators=[validate_excel_file], widget=MultipleFileInput(attrs={"accept": ".xlsx,.xls"}))
     transactions_file = forms.FileField(required=False, label="Транзакции", validators=[validate_excel_file], widget=forms.FileInput(attrs={"accept": ".xlsx,.xls"}))
+
+    def clean_prices_files(self):
+        files = self.cleaned_data.get("prices_files")
+        if not files:
+            return files
+        files = files if isinstance(files, list) else [files]
+        if len(files) > MAX_PRICE_FILES:
+            raise forms.ValidationError(f"Може да импортирате най-много {MAX_PRICE_FILES} ценови файла наведнъж.")
+        return files
 
     def clean(self):
         cleaned = super().clean()

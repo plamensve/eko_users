@@ -1,14 +1,16 @@
 from datetime import date
 from decimal import Decimal
 from types import SimpleNamespace
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
 from .models import Card, Company, Price, Transaction
 from .services import calculate_pricing
-from .utils import get_company_report_data, get_invoice_period
+from .utils import ImportResult, get_company_report_data, get_invoice_period
 
 
 class PricingRulesTests(TestCase):
@@ -103,3 +105,21 @@ class CompanySearchTests(TestCase):
         self.assertContains(response, "АВТО СЕРВИЗ ЕООД")
         self.assertContains(response, 'class="company-row"', count=3)
         self.assertNotContains(response, 'id="company-suggestions"')
+
+
+class PriceUploadTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username="importer", password="safe-test-password")
+        self.client.force_login(self.user)
+
+    @patch("core.views.import_prices", return_value=ImportResult(created=10, updated=2, skipped=0))
+    def test_multiple_price_files_stay_on_upload_page_with_success_message(self, mocked_import):
+        files = [
+            SimpleUploadedFile("prices-1.xlsx", b"first", content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+            SimpleUploadedFile("prices-2.xlsx", b"second", content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+        ]
+        response = self.client.post(reverse("upload"), {"prices_files": files}, follow=True)
+        self.assertRedirects(response, reverse("upload"))
+        self.assertContains(response, "Цените са импортирани успешно")
+        self.assertContains(response, "Обработени файлове: 2")
+        self.assertEqual(mocked_import.call_count, 2)
