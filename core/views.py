@@ -300,7 +300,7 @@ def card_list(request):
 
 @login_required
 def price_list(request):
-    prices = Price.objects.select_related('company').order_by('-date', 'company__name', 'product')
+    prices = Price.objects.select_related('company').order_by('date', 'company__name', 'product', 'id')
     search_query = request.GET.get('search', '').strip()
     product = request.GET.get('product', '').strip()
     date_from_value = request.GET.get('date_from', '').strip()
@@ -505,7 +505,7 @@ def analytics(request):
 @login_required
 def company_prices(request, company_id):
     company = get_object_or_404(Company, id=company_id)
-    prices = Price.objects.filter(company=company).order_by('-date', '-id')
+    prices = Price.objects.filter(company=company).order_by('date', 'product', 'id')
     return render(request, 'core/company_prices.html', {
         'company': company,
         'prices': prices

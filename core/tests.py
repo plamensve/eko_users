@@ -147,6 +147,19 @@ class PriceListTests(TestCase):
         self.assertContains(response, "DIESEL")
         self.assertContains(response, "1.5000 €")
         self.assertContains(response, "1.5300 €")
+        self.assertEqual(
+            [price.date for price in response.context["page_obj"].object_list],
+            [date(2026, 9, 18), date(2026, 9, 19)],
+        )
+
+    def test_company_price_history_is_ordered_oldest_first(self):
+        company = Company.objects.get(name="АЛФА ТРАНС")
+        Price.objects.create(date=date(2026, 9, 10), company=company, product="DIESEL", eko_price="1.4000", final_price="1.4300")
+        response = self.client.get(reverse("company_prices", args=[company.id]))
+        self.assertEqual(
+            list(response.context["prices"].values_list("date", flat=True)),
+            [date(2026, 9, 10), date(2026, 9, 18)],
+        )
 
     def test_price_list_filters_by_company_product_and_date(self):
         response = self.client.get(reverse("price_list"), {
@@ -169,7 +182,7 @@ class PriceListTests(TestCase):
     def test_company_search_normalizes_lowercase_cyrillic_across_pages(self):
         other_company = Company.objects.create(name="ДРУГА ФИРМА", eik="333333333")
         Price.objects.bulk_create([
-            Price(date=date(2026, 9, 20), company=other_company, product=f"PRODUCT {index:03d}", eko_price="1", final_price="1")
+            Price(date=date(2026, 9, 1), company=other_company, product=f"PRODUCT {index:03d}", eko_price="1", final_price="1")
             for index in range(105)
         ])
         unfiltered = self.client.get(reverse("price_list"))
