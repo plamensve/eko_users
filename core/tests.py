@@ -104,6 +104,8 @@ class CompanySearchTests(TestCase):
         self.assertContains(response, "АВТО ТРАНС ПЕТКОВ")
         self.assertContains(response, "АВТО СЕРВИЗ ЕООД")
         self.assertContains(response, 'class="company-row"', count=3)
+        self.assertContains(response, 'class="company-number text-center fw-semibold text-muted"', count=3)
+        self.assertContains(response, "№")
         self.assertNotContains(response, 'id="company-suggestions"')
 
 

@@ -17,18 +17,19 @@
   </div>
   <div class="table-responsive">
     <table class="table table-hover align-middle">
-      <thead><tr><th>Фирма</th><th>ЕИК</th><th>Фактуриране</th><th>Карти</th><th class="text-end">Действия</th></tr></thead>
+      <thead><tr><th class="text-center" style="width:64px">№</th><th>Фирма</th><th>ЕИК</th><th>Фактуриране</th><th>Карти</th><th class="text-end">Действия</th></tr></thead>
       <tbody>
       {% for company in companies %}
         <tr class="company-row" data-company-name="{{ company.name }}" data-company-eik="{{ company.eik }}">
+          <td class="company-number text-center fw-semibold text-muted">{{ forloop.counter }}</td>
           <td><a class="fw-bold text-decoration-none" href="{% url 'company_transactions' company.id %}">{{ company.name }}</a>{% if company.note %}<div class="small text-muted text-truncate" style="max-width:420px">{{ company.note }}</div>{% endif %}</td>
           <td><span class="font-monospace">{{ company.eik }}</span></td>
           <td>{% if company.is_twice_monthly %}<span class="status-pill warning">2× месечно</span>{% else %}<span class="status-pill">Месечно</span>{% endif %}</td>
           <td>{{ company.card_total }}</td>
           <td><div class="action-group justify-content-end"><a class="btn btn-sm btn-primary" href="{% url 'company_transactions' company.id %}">Отчет</a><a class="btn btn-sm btn-outline-primary" href="{% url 'company_prices' company.id %}" title="История на цените"><i class="bi bi-tags"></i></a><a class="btn btn-sm btn-outline-secondary" href="{% url 'export_company_zip' company.id %}" title="ZIP"><i class="bi bi-download"></i></a><a class="btn btn-sm btn-outline-secondary" href="{% url 'company_edit' company.id %}" title="Редакция"><i class="bi bi-pencil"></i></a></div></td>
         </tr>
-      {% empty %}<tr><td colspan="5"><div class="empty-state"><i class="bi bi-buildings fs-1"></i><h2 class="h5 mt-3">Няма фирми</h2><p>Импортирайте файл с карти или добавете фирма ръчно.</p></div></td></tr>{% endfor %}
-      <tr id="company-filter-empty" class="d-none"><td colspan="5"><div class="empty-state"><i class="bi bi-search fs-1"></i><h2 class="h5 mt-3">Няма съвпадащи фирми</h2><p>Няма име или ЕИК, започващи с въведения текст.</p></div></td></tr>
+      {% empty %}<tr><td colspan="6"><div class="empty-state"><i class="bi bi-buildings fs-1"></i><h2 class="h5 mt-3">Няма фирми</h2><p>Импортирайте файл с карти или добавете фирма ръчно.</p></div></td></tr>{% endfor %}
+      <tr id="company-filter-empty" class="d-none"><td colspan="6"><div class="empty-state"><i class="bi bi-search fs-1"></i><h2 class="h5 mt-3">Няма съвпадащи фирми</h2><p>Няма име или ЕИК, започващи с въведения текст.</p></div></td></tr>
       </tbody>
     </table>
   </div>
@@ -56,7 +57,11 @@
       const eik = (row.dataset.companyEik || '').trim();
       const matches = !query || name.startsWith(query) || eik.startsWith(query);
       row.classList.toggle('d-none', !matches);
-      if (matches) visible += 1;
+      if (matches) {
+        visible += 1;
+        const number = row.querySelector('.company-number');
+        if (number) number.textContent = visible;
+      }
     });
     if (emptyState) emptyState.classList.toggle('d-none', visible !== 0 || rows.length === 0);
     if (count) count.textContent = query ? `Показани фирми: ${visible}` : `Общо фирми: ${rows.length}`;
