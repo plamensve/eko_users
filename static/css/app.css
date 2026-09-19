@@ -84,6 +84,8 @@ body { background: var(--canvas); color: var(--ink); font-family: Inter, system-
 .flatpickr-day.selected, .flatpickr-day.selected:hover { background:var(--teal); border-color:var(--teal); }
 .flatpickr-weekdays .flatpickr-weekday:nth-child(6), .flatpickr-weekdays .flatpickr-weekday:nth-child(7) { color:#a94f16; }
 .flatpickr-input[readonly] { background:#fff; }
+#price-results { transition:opacity .18s ease; }
+#price-results.is-loading { opacity:.45; pointer-events:none; }
 
 @media (max-width: 768px) {
   .page-shell { padding-top:1.25rem; }

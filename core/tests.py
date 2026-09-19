@@ -166,6 +166,20 @@ class PriceListTests(TestCase):
         self.assertContains(response, "БЕТА ЛОГИСТИК")
         self.assertEqual(response.context["filtered_count"], 1)
 
+    def test_company_search_normalizes_lowercase_cyrillic_across_pages(self):
+        other_company = Company.objects.create(name="ДРУГА ФИРМА", eik="333333333")
+        Price.objects.bulk_create([
+            Price(date=date(2026, 9, 20), company=other_company, product=f"PRODUCT {index:03d}", eko_price="1", final_price="1")
+            for index in range(105)
+        ])
+        unfiltered = self.client.get(reverse("price_list"))
+        self.assertNotContains(unfiltered, "АЛФА ТРАНС")
+
+        response = self.client.get(reverse("price_list"), {"search": "алф"})
+        self.assertContains(response, "АЛФА ТРАНС")
+        self.assertEqual(response.context["filtered_count"], 1)
+        self.assertEqual(response.context["page_obj"].number, 1)
+
 
 class PriceUploadTests(TestCase):
     def setUp(self):

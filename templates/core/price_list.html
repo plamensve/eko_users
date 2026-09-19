@@ -114,11 +114,13 @@
       if (error.name !== 'AbortError') form.submit();
     } finally {
       search.removeAttribute('aria-busy');
+      results.classList.remove('is-loading');
     }
   }
 
   search.addEventListener('input', () => {
     window.clearTimeout(timer);
+    results.classList.add('is-loading');
     timer = window.setTimeout(refreshPrices, 250);
   });
 })();

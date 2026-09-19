@@ -307,11 +307,13 @@ def price_list(request):
     date_to_value = request.GET.get('date_to', '').strip()
 
     if search_query:
+        normalized_search = normalize_text(search_query)
+        identifier_search = ''.join(search_query.split())
         prices = prices.filter(
-            Q(company__name__istartswith=search_query)
-            | Q(company__eik__startswith=search_query)
-            | Q(company_name_tmp__istartswith=search_query)
-            | Q(company_eik_tmp__startswith=search_query)
+            Q(company__name__startswith=normalized_search)
+            | Q(company__eik__startswith=identifier_search)
+            | Q(company_name_tmp__startswith=normalized_search)
+            | Q(company_eik_tmp__startswith=identifier_search)
         )
     if product:
         prices = prices.filter(product=product)
