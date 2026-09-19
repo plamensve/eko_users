@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}{{ company.name }} · EKO Manager{% endblock %}
+{% block title %}{{ company.name }} · GTA Manager{% endblock %}
 {% block content %}
 <div class="page-heading">
   <div><div class="eyebrow">Фирмен отчет</div><h1 class="page-title">{{ company.name }}</h1><p class="page-subtitle">ЕИК {{ company.eik }} · {% if company.is_twice_monthly %}Двукратно фактуриране{% else %}Месечно фактуриране{% endif %}</p></div>

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Начало · GTA Manager{% endblock %}
+{% block content %}
+<section class="surface gta-home-hero mb-5">
+  <div class="row align-items-center g-4 position-relative">
+    <div class="col-lg-8">
+      <div class="eyebrow text-warning">Център за управление</div>
+      <h1 class="display-4 mt-2 mb-3">Добре дошли в GTA Manager</h1>
+      <p class="lead mb-0 opacity-75">Една платформа за оперативните дейности, клиентските данни, отчетите и процесите на GTA.</p>
+    </div>
+    <div class="col-lg-4 text-lg-end"><div class="home-brand-orbit"><i class="bi bi-command"></i></div></div>
+  </div>
+</section>
+
+<div class="section-heading mb-3"><div><div class="eyebrow">Работно пространство</div><h2 class="h3 fw-bold mt-1 mb-1">Изберете дейност</h2><p class="text-muted mb-0">Всеки модул организира отделен бизнес процес и неговите данни.</p></div></div>
+<div class="row g-4">
+  <div class="col-lg-8">
+    <a class="activity-card activity-card-primary" href="{% url 'fuel_card_chains' %}">
+      <span class="activity-icon"><i class="bi bi-credit-card-2-front"></i></span>
+      <span class="activity-content"><span class="status-pill mb-3"><i class="bi bi-circle-fill small"></i> Активен модул</span><strong>Картови зареждания</strong><small>Управление на фирми, горивни карти, ценови листи, транзакции и готови отчети по вериги бензиностанции.</small><span class="activity-link">Избери верига <i class="bi bi-arrow-right"></i></span></span>
+      <span class="activity-decoration"><i class="bi bi-fuel-pump"></i></span>
+    </a>
+  </div>
+  <div class="col-lg-4">
+    <div class="activity-card activity-card-upcoming">
+      <span class="activity-icon"><i class="bi bi-grid"></i></span>
+      <span class="activity-content"><span class="status-pill warning mb-3">Предстоящо</span><strong>Нови дейности</strong><small>GTA Manager е подготвен за добавяне на следващи оперативни модули.</small></span>
+    </div>
+  </div>
+</div>
+{% endblock %}

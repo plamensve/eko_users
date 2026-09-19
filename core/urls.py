@@ -3,7 +3,9 @@ from django.contrib.auth import views as auth_views
 from . import views
 
 urlpatterns = [
-    path('', views.index, name='index'),
+    path('', views.home, name='home'),
+    path('fuel-cards/', views.fuel_card_chains, name='fuel_card_chains'),
+    path('fuel-cards/eko/', views.index, name='index'),
     path('login/', auth_views.LoginView.as_view(template_name='core/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
     path('upload/', views.upload_files, name='upload'),

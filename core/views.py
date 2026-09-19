@@ -15,6 +15,16 @@ from django.urls import reverse
 
 
 @login_required
+def home(request):
+    return render(request, 'core/home.html')
+
+
+@login_required
+def fuel_card_chains(request):
+    return render(request, 'core/fuel_card_chains.html')
+
+
+@login_required
 def index(request):
     period = Transaction.objects.aggregate(start=Min('date'), end=Max('date'))
     return render(request, 'core/index.html', {

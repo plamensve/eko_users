@@ -1,11 +1,12 @@
 {% extends 'base.html' %}
-{% block title %}Табло · EKO Manager{% endblock %}
+{% block title %}ЕКО картови зареждания · GTA Manager{% endblock %}
 {% block content %}
+<div class="module-breadcrumb mb-3"><a href="{% url 'home' %}">GTA Manager</a><i class="bi bi-chevron-right"></i><a href="{% url 'fuel_card_chains' %}">Картови зареждания</a><i class="bi bi-chevron-right"></i><strong>ЕКО</strong></div>
 <section class="surface hero-panel mb-4">
   <div class="row align-items-center g-4">
     <div class="col-lg-8">
-      <div class="eyebrow text-warning">Отчети и фактуриране</div>
-      <h1 class="display-5 mt-2">Управлявайте отчетния период уверено.</h1>
+      <div class="eyebrow text-warning">ЕКО · Отчети и фактуриране</div>
+      <h1 class="display-5 mt-2">Картови зареждания в ЕКО</h1>
       <p class="lead opacity-75 mb-4">Импортирайте карти, ценови листи и транзакции. Системата прилага историческата цена и генерира готови Excel и PDF справки.</p>
       <div class="action-group">
         <a class="btn btn-warning btn-lg" href="{% url 'upload' %}"><i class="bi bi-cloud-arrow-up me-2"></i>Нов импорт</a>

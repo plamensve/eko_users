@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
-  <title>{% block title %}EKO Manager{% endblock %}</title>
+  <title>{% block title %}GTA Manager{% endblock %}</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -15,13 +15,20 @@
 <body>
   <nav class="navbar navbar-expand-lg navbar-dark app-navbar sticky-top">
     <div class="container-fluid px-lg-5">
-      <a class="navbar-brand d-flex align-items-center" href="{% url 'index' %}">
-        <span class="brand-mark"><i class="bi bi-fuel-pump-fill"></i></span>EKO Manager
+      <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
+        <span class="brand-mark"><i class="bi bi-command"></i></span>GTA Manager
       </a>
       {% if user.is_authenticated %}
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#appNav" aria-label="Навигация"><span class="navbar-toggler-icon"></span></button>
       <div class="collapse navbar-collapse" id="appNav">
+        {% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'fuel_card_chains' or request.resolver_match.url_name == 'profile' or request.resolver_match.url_name == 'change_password' %}
         <ul class="navbar-nav me-auto ms-lg-3 gap-lg-1">
+          <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}"><i class="bi bi-house me-1"></i> Начало</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'fuel_card_chains' %}active{% endif %}" href="{% url 'fuel_card_chains' %}"><i class="bi bi-credit-card me-1"></i> Картови зареждания</a></li>
+        </ul>
+        {% else %}
+        <ul class="navbar-nav me-auto ms-lg-3 gap-lg-1">
+          <li class="nav-item"><a class="nav-link chain-switch" href="{% url 'fuel_card_chains' %}" title="Смени веригата"><i class="bi bi-arrow-left-right me-1"></i> ЕКО</a></li>
           <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}" href="{% url 'index' %}"><i class="bi bi-grid me-1"></i> Табло</a></li>
           <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'upload' %}active{% endif %}" href="{% url 'upload' %}"><i class="bi bi-cloud-arrow-up me-1"></i> Импорт</a></li>
           <li class="nav-item"><a class="nav-link {% if 'company' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'company_list' %}"><i class="bi bi-buildings me-1"></i> Фирми</a></li>
@@ -29,6 +36,7 @@
           <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'price_list' %}active{% endif %}" href="{% url 'price_list' %}"><i class="bi bi-tags me-1"></i> Цени</a></li>
           <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}" href="{% url 'analytics' %}"><i class="bi bi-bar-chart me-1"></i> Аналитика</a></li>
         </ul>
+        {% endif %}
         <div class="dropdown">
           <button class="btn btn-outline-light dropdown-toggle" data-bs-toggle="dropdown"><i class="bi bi-person-circle me-1"></i>{{ user.get_full_name|default:user.username }}</button>
           <ul class="dropdown-menu dropdown-menu-end shadow border-0">

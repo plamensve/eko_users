@@ -67,6 +67,10 @@ class ReportingTests(TestCase):
 
 
 class AccessTests(TestCase):
+    def test_home_requires_login(self):
+        response = self.client.get(reverse("home"))
+        self.assertRedirects(response, f"{reverse('login')}?next={reverse('home')}")
+
     def test_dashboard_requires_login(self):
         response = self.client.get(reverse("index"))
         self.assertRedirects(response, f"{reverse('login')}?next={reverse('index')}")
@@ -75,6 +79,25 @@ class AccessTests(TestCase):
         user = get_user_model().objects.create_user(username="operator", password="safe-test-password")
         self.client.force_login(user)
         self.assertEqual(self.client.get(reverse("index")).status_code, 200)
+
+    def test_gta_home_and_fuel_chain_selector(self):
+        user = get_user_model().objects.create_user(username="manager", password="safe-test-password")
+        self.client.force_login(user)
+        home = self.client.get(reverse("home"))
+        self.assertContains(home, "GTA Manager")
+        self.assertContains(home, "Картови зареждания")
+
+        chains = self.client.get(reverse("fuel_card_chains"))
+        self.assertContains(chains, "ЕКО")
+        self.assertContains(chains, "Petrol")
+        self.assertContains(chains, "SNG")
+        self.assertContains(chains, "Химойл")
+        self.assertContains(chains, f'href="{reverse("index")}"')
+
+    def test_login_redirects_to_gta_home(self):
+        get_user_model().objects.create_user(username="login-user", password="safe-test-password")
+        response = self.client.post(reverse("login"), {"username": "login-user", "password": "safe-test-password"})
+        self.assertRedirects(response, reverse("home"))
 
     def test_relink_is_post_only(self):
         user = get_user_model().objects.create_user(username="operator2", password="safe-test-password")
