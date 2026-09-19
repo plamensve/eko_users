@@ -308,11 +308,10 @@ def price_list(request):
 
     if search_query:
         prices = prices.filter(
-            Q(company__name__icontains=search_query)
-            | Q(company__eik__icontains=search_query)
-            | Q(company_name_tmp__icontains=search_query)
-            | Q(company_eik_tmp__icontains=search_query)
-            | Q(product__icontains=search_query)
+            Q(company__name__istartswith=search_query)
+            | Q(company__eik__startswith=search_query)
+            | Q(company_name_tmp__istartswith=search_query)
+            | Q(company_eik_tmp__startswith=search_query)
         )
     if product:
         prices = prices.filter(product=product)

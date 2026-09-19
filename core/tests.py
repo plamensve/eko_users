@@ -139,6 +139,10 @@ class PriceListTests(TestCase):
         response = self.client.get(reverse("price_list"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Импортнати цени")
+        self.assertContains(response, "refreshPrices")
+        self.assertContains(response, "calendar-weekend")
+        self.assertContains(response, "bi-chevron-left")
+        self.assertContains(response, "bi-chevron-right")
         self.assertContains(response, "АЛФА ТРАНС")
         self.assertContains(response, "DIESEL")
         self.assertContains(response, "1.5000 €")
@@ -153,6 +157,13 @@ class PriceListTests(TestCase):
         })
         self.assertContains(response, "БЕТА ЛОГИСТИК")
         self.assertNotContains(response, "АЛФА ТРАНС")
+        self.assertEqual(response.context["filtered_count"], 1)
+
+    def test_company_search_matches_only_from_the_beginning(self):
+        response = self.client.get(reverse("price_list"), {"search": "ЛОГИСТИК"})
+        self.assertEqual(response.context["filtered_count"], 0)
+        response = self.client.get(reverse("price_list"), {"search": "222"})
+        self.assertContains(response, "БЕТА ЛОГИСТИК")
         self.assertEqual(response.context["filtered_count"], 1)
 
 

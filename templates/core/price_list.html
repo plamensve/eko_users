@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% block title %}Импортнати цени · EKO Manager{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">{% endblock %}
 {% block content %}
 <div class="page-heading">
   <div><div class="eyebrow">Ценови листи</div><h1 class="page-title">Импортнати цени</h1><p class="page-subtitle">Преглед на договорните цени, маржове и отстъпки по фирми и дати.</p></div>
@@ -7,17 +8,17 @@
 </div>
 
 <div class="row g-3 mb-4">
-  <div class="col-sm-4"><div class="surface metric-card"><div class="metric-label">Намерени записи</div><div class="metric-value">{{ filtered_count }}</div><div class="metric-meta">според избраните филтри</div></div></div>
-  <div class="col-sm-4"><div class="surface metric-card"><div class="metric-label">Продукти</div><div class="metric-value">{{ product_count }}</div><div class="metric-meta">различни горива в резултатите</div></div></div>
-  <div class="col-sm-4"><div class="surface metric-card"><div class="metric-label">Последна дата</div><div class="metric-value fs-3">{% if latest_date %}{{ latest_date|date:'d.m.Y' }}{% else %}—{% endif %}</div><div class="metric-meta">най-новата импортната цена</div></div></div>
+  <div class="col-sm-4"><div class="surface metric-card"><div class="metric-label">Намерени записи</div><div class="metric-value" id="price-found-count">{{ filtered_count }}</div><div class="metric-meta">според избраните филтри</div></div></div>
+  <div class="col-sm-4"><div class="surface metric-card"><div class="metric-label">Продукти</div><div class="metric-value" id="price-product-count">{{ product_count }}</div><div class="metric-meta">различни горива в резултатите</div></div></div>
+  <div class="col-sm-4"><div class="surface metric-card"><div class="metric-label">Последна дата</div><div class="metric-value fs-3" id="price-latest-date">{% if latest_date %}{{ latest_date|date:'d.m.Y' }}{% else %}—{% endif %}</div><div class="metric-meta">най-новата импортната цена</div></div></div>
 </div>
 
 <section class="surface">
   <div class="surface-header">
     <form method="get" class="row g-2 align-items-end">
       <div class="col-12 col-xl-4">
-        <label class="form-label small fw-semibold" for="price-search">Фирма, ЕИК или продукт</label>
-        <div class="input-group"><span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span><input type="search" class="form-control border-start-0" id="price-search" name="search" value="{{ search_query }}" placeholder="Търсене в импортнатите цени"></div>
+        <label class="form-label small fw-semibold" for="price-search">Фирма или ЕИК</label>
+        <div class="input-group"><span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span><input type="search" class="form-control border-start-0" id="price-search" name="search" value="{{ search_query }}" placeholder="Започнете да пишете име или ЕИК" autocomplete="off"></div>
       </div>
       <div class="col-sm-4 col-xl-3">
         <label class="form-label small fw-semibold" for="price-product">Продукт</label>
@@ -29,7 +30,7 @@
       {% if search_query or selected_product or date_from or date_to %}<div class="col-12"><a class="small text-decoration-none" href="{% url 'price_list' %}"><i class="bi bi-x-circle me-1"></i>Изчисти всички филтри</a></div>{% endif %}
     </form>
   </div>
-  <div class="table-responsive">
+  <div id="price-results"><div class="table-responsive">
     <table class="table table-hover align-middle">
       <thead><tr><th class="text-center" style="width:64px">№</th><th>Дата</th><th>Фирма</th><th>Продукт</th><th class="currency">ЕКО цена</th><th class="currency">Марж</th><th class="currency">Отстъпка</th><th class="currency">Крайна цена</th></tr></thead>
       <tbody>
@@ -58,5 +59,68 @@
     </ul></nav>
   </div>
   {% endif %}
+  </div>
 </section>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/bg.js"></script>
+<script>
+(() => {
+  const form = document.querySelector('.surface-header form');
+  const search = document.getElementById('price-search');
+  const results = document.getElementById('price-results');
+  if (!form || !search || !results) return;
+
+  const calendarOptions = {
+    locale: 'bg',
+    dateFormat: 'Y-m-d',
+    altInput: true,
+    altFormat: 'd.m.Y',
+    allowInput: true,
+    prevArrow: '<i class="bi bi-chevron-left" aria-hidden="true"></i>',
+    nextArrow: '<i class="bi bi-chevron-right" aria-hidden="true"></i>',
+    onDayCreate: (_, __, ___, day) => {
+      const weekday = day.dateObj.getDay();
+      if (weekday === 0 || weekday === 6) day.classList.add('calendar-weekend');
+    }
+  };
+  flatpickr('#price-date-from', calendarOptions);
+  flatpickr('#price-date-to', calendarOptions);
+
+  let timer;
+  let request;
+  async function refreshPrices() {
+    if (request) request.abort();
+    request = new AbortController();
+    const params = new URLSearchParams(new FormData(form));
+    params.delete('page');
+    const url = `${window.location.pathname}?${params.toString()}`;
+    search.setAttribute('aria-busy', 'true');
+    try {
+      const response = await fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}, signal: request.signal});
+      if (!response.ok) throw new Error('Search request failed');
+      const documentCopy = new DOMParser().parseFromString(await response.text(), 'text/html');
+      const nextResults = documentCopy.getElementById('price-results');
+      if (!nextResults) throw new Error('Missing price results');
+      results.innerHTML = nextResults.innerHTML;
+      ['price-found-count', 'price-product-count', 'price-latest-date'].forEach(id => {
+        const current = document.getElementById(id);
+        const next = documentCopy.getElementById(id);
+        if (current && next) current.textContent = next.textContent;
+      });
+      window.history.replaceState({}, '', url);
+    } catch (error) {
+      if (error.name !== 'AbortError') form.submit();
+    } finally {
+      search.removeAttribute('aria-busy');
+    }
+  }
+
+  search.addEventListener('input', () => {
+    window.clearTimeout(timer);
+    timer = window.setTimeout(refreshPrices, 250);
+  });
+})();
+</script>
 {% endblock %}
