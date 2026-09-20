@@ -3,7 +3,7 @@
 {% block title %}Вход · GTA Manager{% endblock %}
 {% block content %}
 <div class="login-shell">
-  <div class="login-brand"><span class="login-brand-logo"><img src="{% static 'img/logos/gta-petroleum-icon.png' %}" alt="GTA Petroleum"></span><h1 class="h3 fw-bold mt-3">GTA Manager</h1><p class="text-muted">Единен център за управление на дейностите</p></div>
+  <div class="login-brand"><span class="login-brand-logo"><img width="78" height="78" style="display:block;width:78px;height:78px;max-width:100%;max-height:100%;object-fit:contain;position:static;" src="{% static 'img/logos/gta-petroleum-clean.png' %}" alt="GTA Petroleum"></span><h1 class="h3 fw-bold mt-3">GTA Manager</h1><p class="text-muted">Единен център за управление на дейностите</p></div>
   <section class="surface"><div class="surface-body p-4 p-lg-5">
     {% if form.errors %}<div class="alert alert-danger">Невалидно потребителско име или парола.</div>{% endif %}
     <form method="post">{% csrf_token %}
