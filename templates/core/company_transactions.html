@@ -6,7 +6,7 @@
   <div class="action-group"><a class="btn btn-success" href="{% url 'export_excel' company.id %}?report={{ report_type }}"><i class="bi bi-file-earmark-excel me-1"></i>Excel</a><a class="btn btn-outline-danger" href="{% url 'export_pdf' company.id %}?report={{ report_type }}"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</a><a class="btn btn-outline-secondary" href="{% url 'company_prices' company.id %}">Цени</a></div>
 </div>
 {% if company.note %}<div class="alert alert-warning"><strong>Забележка към фактурата:</strong> {{ company.note }}</div>{% endif %}
-<div class="surface mb-4 p-2"><div class="nav nav-pills flex-column flex-sm-row">
+<div class="surface mb-4 p-2"><div class="nav nav-pills report-period-nav flex-column flex-sm-row">
   <a class="nav-link text-center {% if report_type == 'billing' %}active{% endif %}" href="?report=billing">За фактуриране</a>
   <a class="nav-link text-center {% if report_type == 'first' %}active{% endif %}" href="?report=first">01–15</a>
   <a class="nav-link text-center {% if report_type == 'second' %}active{% endif %}" href="?report=second">16–края</a>

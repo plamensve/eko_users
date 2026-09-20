@@ -102,7 +102,7 @@ class AccessTests(TestCase):
         self.assertContains(chains, "img/logos/himoil-icon.png")
         self.assertContains(home, "img/logos/gta-original-diamond.svg")
         self.assertContains(chains, 'width="78" height="78"', count=4)
-        self.assertContains(chains, "app.css?v=20260920-eko-hero-1")
+        self.assertContains(chains, "app.css?v=20260920-period-hover-1")
         self.assertContains(chains, f'href="{reverse("index")}"')
 
     def test_login_redirects_to_gta_home(self):
@@ -123,6 +123,11 @@ class CompanySearchTests(TestCase):
         self.auto_petkov = Company.objects.create(name="АВТО ТРАНС ПЕТКОВ", eik="123456789")
         Company.objects.create(name="АВТО СЕРВИЗ ЕООД", eik="987654321")
         Company.objects.create(name="ТРАНС АВТО ЕООД", eik="555555555")
+
+    def test_company_report_uses_scoped_period_navigation(self):
+        response = self.client.get(reverse("company_transactions", args=[self.auto_petkov.id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "report-period-nav")
 
     def test_suggestions_match_company_name_from_the_beginning(self):
         response = self.client.get(reverse("company_search_suggestions"), {"term": "авт"})
