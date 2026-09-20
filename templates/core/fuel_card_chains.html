@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Картови зареждания · GTA Manager{% endblock %}
 {% block content %}
 <div class="page-heading">
@@ -9,18 +10,18 @@
 <div class="chain-grid">
   <a class="chain-card chain-card-active" href="{% url 'index' %}">
     <span class="chain-status active"><i class="bi bi-check-circle-fill"></i> Активна</span>
-    <span class="chain-logo chain-eko"><span class="chain-symbol">E</span></span>
+    <span class="chain-logo"><img src="{% static 'img/logos/eko.png' %}" alt="ЕКО"></span>
     <span class="chain-content"><strong>ЕКО</strong><small>Пълно управление на карти, цени, транзакции и отчети.</small></span>
     <span class="chain-action">Отвори работното пространство <i class="bi bi-arrow-right"></i></span>
   </a>
   <div class="chain-card is-disabled">
-    <span class="chain-status">Предстоящо</span><span class="chain-logo chain-petrol"><span class="chain-symbol">P</span></span><span class="chain-content"><strong>Petrol</strong><small>Модулът ще бъде добавен в следващ етап.</small></span>
+    <span class="chain-status">Предстоящо</span><span class="chain-logo"><img src="{% static 'img/logos/petrol.png' %}" alt="Petrol"></span><span class="chain-content"><strong>Petrol</strong><small>Модулът ще бъде добавен в следващ етап.</small></span>
   </div>
   <div class="chain-card is-disabled">
-    <span class="chain-status">Предстоящо</span><span class="chain-logo chain-sng"><span class="chain-symbol">S</span></span><span class="chain-content"><strong>SNG</strong><small>Модулът ще бъде добавен в следващ етап.</small></span>
+    <span class="chain-status">Предстоящо</span><span class="chain-logo"><img src="{% static 'img/logos/sng.png' %}" alt="SNG"></span><span class="chain-content"><strong>SNG</strong><small>Модулът ще бъде добавен в следващ етап.</small></span>
   </div>
   <div class="chain-card is-disabled">
-    <span class="chain-status">Предстоящо</span><span class="chain-logo chain-himoil"><span class="chain-symbol">H</span></span><span class="chain-content"><strong>Химойл</strong><small>Модулът ще бъде добавен в следващ етап.</small></span>
+    <span class="chain-status">Предстоящо</span><span class="chain-logo"><img src="{% static 'img/logos/himoil.png' %}" alt="Химойл"></span><span class="chain-content"><strong>Химойл</strong><small>Модулът ще бъде добавен в следващ етап.</small></span>
   </div>
 </div>
 {% endblock %}

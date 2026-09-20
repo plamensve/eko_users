@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Начало · GTA Manager{% endblock %}
 {% block content %}
 <section class="surface gta-home-hero mb-5">
@@ -8,7 +9,7 @@
       <h1 class="display-4 mt-2 mb-3">Добре дошли в GTA Manager</h1>
       <p class="lead mb-0 opacity-75">Една платформа за оперативните дейности, клиентските данни, отчетите и процесите на GTA.</p>
     </div>
-    <div class="col-lg-4 text-lg-end"><div class="home-brand-orbit"><i class="bi bi-command"></i></div></div>
+    <div class="col-lg-4 text-lg-end"><div class="home-brand-orbit"><img src="{% static 'img/logos/gta-petroleum.png' %}" alt="GTA Petroleum"></div></div>
   </div>
 </section>
 
