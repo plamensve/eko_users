@@ -15,13 +15,6 @@ body { background: var(--canvas); color: var(--ink); font-family: Inter, system-
 .navbar-brand { font-weight: 800; letter-spacing: -.02em; }
  .brand-mark { display:grid; place-items:center; flex:0 0 40px; width:40px; height:40px; margin-right:.65rem; padding:2px; overflow:hidden; border-radius:10px; background:#fff; }
 .brand-mark img { display:block; width:100%; height:100%; object-fit:contain; }
-/* Enforce flat brand green and white, with no generated texture or shading. */
-img[src*="gta-petroleum-clean"] {
-  filter:url(#gta-solid);
-  /* Fill translucent wear inside the emblem, not just its RGB colors. */
-  background-color:#00796b;
-  clip-path:polygon(50% 8%,92% 50%,50% 92%,8% 50%);
-}
 .nav-link { border-radius: 9px; font-weight: 600; }
 .nav-link:hover, .nav-link.active { background: rgba(255,255,255,.1); color:#fff!important; }
 .page-shell { max-width: 1480px; margin: 0 auto; padding: 2rem clamp(1rem, 3vw, 3rem) 4rem; }
