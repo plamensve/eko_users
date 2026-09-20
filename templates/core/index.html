@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}ЕКО картови зареждания · GTA Manager{% endblock %}
 {% block content %}
 <div class="module-breadcrumb mb-3"><a href="{% url 'home' %}">GTA Manager</a><i class="bi bi-chevron-right"></i><a href="{% url 'fuel_card_chains' %}">Картови зареждания</a><i class="bi bi-chevron-right"></i><strong>ЕКО</strong></div>
@@ -13,11 +14,16 @@
         <a class="btn btn-outline-light btn-lg" href="{% url 'company_list' %}"><i class="bi bi-file-earmark-spreadsheet me-2"></i>Отчети по фирми</a>
       </div>
     </div>
-    <div class="col-lg-4 text-lg-end">
-      <div class="d-inline-block text-start p-4 rounded-4" style="background:rgba(255,255,255,.1)">
+    <div class="col-lg-4">
+      <div class="eko-hero-brand">
+        <div class="eko-hero-logo">
+          <img src="{% static 'img/logos/eko-icon.png' %}" width="96" height="96" alt="ЕКО">
+        </div>
+        <div class="eko-period-card">
         <div class="small opacity-75">Текущ отчетен период</div>
         <div class="fs-4 fw-bold mt-1">
           {% if period_start %}{{ period_start|date:'d.m.Y' }} – {{ period_end|date:'d.m.Y' }}{% else %}Няма заредени транзакции{% endif %}
+        </div>
         </div>
       </div>
     </div>

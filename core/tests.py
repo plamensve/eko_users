@@ -78,7 +78,11 @@ class AccessTests(TestCase):
     def test_authenticated_user_can_open_dashboard(self):
         user = get_user_model().objects.create_user(username="operator", password="safe-test-password")
         self.client.force_login(user)
-        self.assertEqual(self.client.get(reverse("index")).status_code, 200)
+        response = self.client.get(reverse("index"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "img/logos/eko-icon.png")
+        self.assertContains(response, 'class="eko-hero-brand"')
+        self.assertContains(response, "Текущ отчетен период")
 
     def test_gta_home_and_fuel_chain_selector(self):
         user = get_user_model().objects.create_user(username="manager", password="safe-test-password")
@@ -98,7 +102,7 @@ class AccessTests(TestCase):
         self.assertContains(chains, "img/logos/himoil-icon.png")
         self.assertContains(home, "img/logos/gta-original-diamond.svg")
         self.assertContains(chains, 'width="78" height="78"', count=4)
-        self.assertContains(chains, "app.css?v=20260920-logo-layout-6")
+        self.assertContains(chains, "app.css?v=20260920-eko-hero-1")
         self.assertContains(chains, f'href="{reverse("index")}"')
 
     def test_login_redirects_to_gta_home(self):

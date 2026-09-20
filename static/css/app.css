@@ -32,6 +32,10 @@ body { background: var(--canvas); color: var(--ink); font-family: Inter, system-
 .metric-meta { margin-top:.55rem; color:var(--muted); font-size:.8rem; }
 .hero-panel { color:#fff; background:linear-gradient(135deg,#102d44 0%,#1c5575 72%,#0d8f82 140%); border:0; padding:clamp(1.5rem,4vw,3rem); }
 .hero-panel h1 { font-weight:800; letter-spacing:-.04em; }
+.eko-hero-brand { display:flex; flex-direction:column; align-items:center; gap:1rem; width:100%; max-width:340px; margin-left:auto; }
+.eko-hero-logo { display:grid; place-items:center; width:112px; height:112px; padding:8px; overflow:hidden; background:#fff; border:1px solid rgba(255,255,255,.45); border-radius:24px; box-shadow:0 14px 34px rgba(5,24,39,.2); }
+.eko-hero-logo img { display:block; width:96px; height:96px; max-width:100%; max-height:100%; object-fit:contain; }
+.eko-period-card { width:100%; padding:1.25rem 1.4rem; text-align:center; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.08); border-radius:16px; }
 .btn { border-radius:10px; font-weight:700; }
 .btn-primary { background:var(--navy-2); border-color:var(--navy-2); }
 .btn-success { background:var(--teal); border-color:var(--teal); }
@@ -136,6 +140,8 @@ body { background: var(--canvas); color: var(--ink); font-family: Inter, system-
   .upload-step-icon { width:42px; height:42px; }
   .import-footer .btn { width:100%; }
   .gta-home-hero { text-align:left; }
+  .eko-hero-brand { max-width:none; margin:0; align-items:flex-start; }
+  .eko-period-card { text-align:left; }
   .home-brand-orbit { width:104px; height:104px; border-radius:22px; }
   .activity-card { min-height:240px; }
   .activity-decoration { font-size:8rem; }
