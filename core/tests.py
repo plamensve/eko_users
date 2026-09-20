@@ -92,11 +92,11 @@ class AccessTests(TestCase):
         self.assertContains(chains, "Petrol")
         self.assertContains(chains, "SNG")
         self.assertContains(chains, "Химойл")
-        self.assertContains(chains, "img/logos/eko.png")
-        self.assertContains(chains, "img/logos/petrol.png")
-        self.assertContains(chains, "img/logos/sng.png")
-        self.assertContains(chains, "img/logos/himoil.png")
-        self.assertContains(home, "img/logos/gta-petroleum.png")
+        self.assertContains(chains, "img/logos/eko-icon.png")
+        self.assertContains(chains, "img/logos/petrol-icon.png")
+        self.assertContains(chains, "img/logos/sng-icon.png")
+        self.assertContains(chains, "img/logos/himoil-icon.png")
+        self.assertContains(home, "img/logos/gta-petroleum-icon.png")
         self.assertContains(chains, f'href="{reverse("index")}"')
 
     def test_login_redirects_to_gta_home(self):
