@@ -279,3 +279,36 @@ class PriceUploadTests(TestCase):
         self.assertContains(response, "Цените са импортирани успешно")
         self.assertContains(response, "Обработени файлове: 2")
         self.assertEqual(mocked_import.call_count, 2)
+
+
+class AnalyticsExcelTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username="analyst", password="safe-test-password")
+        self.client.force_login(self.user)
+        self.company = Company.objects.create(name="ТЕСТ ФИРМА", eik="123")
+        self.card = Card.objects.create(card_number="100", company=self.company)
+        for day, qty in ((5, "10"), (20, "20")):
+            Transaction.objects.create(plant="1", card_number="100", card=self.card,
+                material="DIЕSЕL ЕКОNОМY", date=date(2026, 9, day), bill_qty=qty,
+                price="1.5000", amount="15")
+
+    def test_excel_matches_selected_analytics_period_and_five_sheet_layout(self):
+        from io import BytesIO
+        from openpyxl import load_workbook
+
+        for period, expected_liters in (("first", 10), ("second", 20), ("full", 30)):
+            with self.subTest(period=period):
+                response = self.client.get(reverse("analytics_excel"), {"report": period})
+                self.assertEqual(response.status_code, 200)
+                self.assertIn("attachment", response["Content-Disposition"])
+                workbook = load_workbook(BytesIO(response.content), data_only=True)
+                self.assertEqual(workbook.sheetnames,
+                    ["Summary", "Dashboard", "Total", "Top Clients", "Analysis Dataset"])
+                self.assertEqual(workbook["Total"]["B4"].value, expected_liters)
+                self.assertEqual(workbook["Summary"]["I4"].value, expected_liters)
+                self.assertEqual(workbook["Analysis Dataset"]["I2"].value, expected_liters)
+
+    def test_excel_empty_period_shows_message(self):
+        Transaction.objects.all().delete()
+        response = self.client.get(reverse("analytics_excel"), {"report": "first"}, follow=True)
+        self.assertContains(response, "Няма транзакции")
