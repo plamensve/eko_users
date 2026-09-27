@@ -18,6 +18,7 @@ urlpatterns = [
     path('companies/<int:company_id>/zip/', views.export_company_zip_view, name='export_company_zip'),
     path('companies/export-all/', views.export_all_zip, name='export_all_zip'),
     path('analytics/', views.analytics, name='analytics'),
+    path('analytics/excel/', views.analytics_excel, name='analytics_excel'),
     
     # Company CRUD
     path('companies/add/', views.company_add, name='company_add'),
