@@ -238,6 +238,18 @@ class PriceUploadTests(TestCase):
         self.user = get_user_model().objects.create_user(username="importer", password="safe-test-password")
         self.client.force_login(self.user)
 
+    def test_product_labels_classify_mixed_alphabet_import_names(self):
+        products = {
+            "DIЕSЕL ЕКОNОМY": "diesel",
+            "DIЕSЕL DОUВLЕ FILТЕRЕD": "premium-diesel",
+            "95 ЕКОNОМY UNLЕАDЕD": "petrol",
+            "ЕКО RАСING 100": "premium-petrol",
+            "Е GАS LРG": "lpg",
+        }
+        for product, expected in products.items():
+            with self.subTest(product=product):
+                self.assertEqual(Price(product=product).product_kind, expected)
+
     def test_relink_legacy_prices_with_duplicate_keys_keeps_existing_records(self):
         company = Company.objects.create(name="ПОДИ ЕООД", eik="204195863")
         existing = Price.objects.create(date=date(2026, 9, 1), company=company, product="DIESEL", final_price="1.5000")
