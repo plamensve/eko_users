@@ -414,12 +414,16 @@ def relink_data():
         Transaction.objects.bulk_update(transactions, ["card"], batch_size=500)
     companies_eik = {item.eik: item for item in Company.objects.exclude(eik="")}
     companies_name = {item.name: item for item in Company.objects.all()}
-    prices = []
-    for item in Price.objects.filter(company__isnull=True):
+    linked_prices = 0
+    # Legacy imports can leave several unlinked prices for the same company,
+    # date and product. Keep the existing linked price and leave conflicting
+    # records untouched so card imports remain safe and no prices are lost.
+    for item in Price.objects.filter(company__isnull=True).order_by("id").iterator():
         company = companies_eik.get(item.company_eik_tmp) or companies_name.get(item.company_name_tmp)
-        if company:
+        if company and not Price.objects.filter(
+            date=item.date, company=company, product=item.product
+        ).exists():
             item.company = company
-            prices.append(item)
-    if prices:
-        Price.objects.bulk_update(prices, ["company"], batch_size=500)
-    return len(transactions), len(prices)
+            item.save(update_fields=["company"])
+            linked_prices += 1
+    return len(transactions), linked_prices
