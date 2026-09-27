@@ -163,6 +163,8 @@
 
         <div class="period-selector">
 
+            <a href="{% url 'analytics_excel' %}?report={{ report_type }}" class="btn btn-success align-self-center text-nowrap"><i class="bi bi-file-earmark-excel me-1"></i>Изтегли Excel отчет</a>
+
             <a
                 href="?report=first"
                 class="period-btn {% if report_type == 'first' %}period-btn-active{% else %}period-btn-inactive{% endif %}"
