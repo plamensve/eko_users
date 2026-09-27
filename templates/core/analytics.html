@@ -378,6 +378,16 @@
 
         <div class="card-body p-0">
 
+            <div class="p-3 border-bottom">
+                <div class="row g-2 align-items-center">
+                    <div class="col">
+                        <div class="input-group"><span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span><input type="search" class="form-control border-start-0" id="analytics-company-search" placeholder="Въведете начало на име на фирма или ЕИК" aria-label="Филтриране по фирма или ЕИК"></div>
+                    </div>
+                    <div class="col-auto"><button type="button" class="btn btn-light" id="clear-analytics-company-search">Изчисти</button></div>
+                    <div class="col-12"><span class="small text-muted" id="analytics-company-search-count" aria-live="polite"></span></div>
+                </div>
+            </div>
+
             <div class="table-responsive">
 
                 <table class="table table-hover table-bordered mb-0">
@@ -415,10 +425,10 @@
 
                         {% for item in analytics_data %}
 
-                            <tr>
+                            <tr class="analytics-company-row" data-company-name="{{ item.company.name }}" data-company-eik="{{ item.company.eik }}">
 
                                 <td>
-                                    {{ forloop.counter }}
+                                    <span class="analytics-company-number">{{ forloop.counter }}</span>
                                 </td>
 
 
@@ -482,6 +492,8 @@
 
                         {% endfor %}
 
+                        <tr id="analytics-company-filter-empty" class="d-none"><td colspan="5" class="text-center text-muted py-5">Няма съвпадащи фирми. Въведете начало на име или ЕИК.</td></tr>
+
                     </tbody>
 
 
@@ -490,7 +502,7 @@
                         <tr>
 
                             <td colspan="2" class="text-right">
-                                ОБЩО:
+                                ОБЩО ЗА ПЕРИОДА (ВСИЧКИ ФИРМИ):
                             </td>
 
 
@@ -529,4 +541,46 @@
 
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+(() => {
+  const input = document.getElementById('analytics-company-search');
+  const clearButton = document.getElementById('clear-analytics-company-search');
+  const rows = [...document.querySelectorAll('.analytics-company-row')];
+  const emptyState = document.getElementById('analytics-company-filter-empty');
+  const count = document.getElementById('analytics-company-search-count');
+  if (!input) return;
+
+  function normalize(value) {
+    return value.trim().replace(/\s+/g, ' ').toLocaleUpperCase('bg-BG');
+  }
+
+  function filterCompanies() {
+    const query = normalize(input.value);
+    let visible = 0;
+    rows.forEach(row => {
+      const name = normalize(row.dataset.companyName || '');
+      const eik = (row.dataset.companyEik || '').trim();
+      const matches = !query || name.startsWith(query) || eik.startsWith(query);
+      row.classList.toggle('d-none', !matches);
+      if (matches) {
+        visible += 1;
+        row.querySelector('.analytics-company-number').textContent = visible;
+      }
+    });
+    emptyState.classList.toggle('d-none', !query || visible !== 0 || rows.length === 0);
+    count.textContent = query ? `Показани фирми: ${visible}` : `Общо фирми: ${rows.length}`;
+  }
+
+  input.addEventListener('input', filterCompanies);
+  clearButton.addEventListener('click', () => {
+    input.value = '';
+    input.focus();
+    filterCompanies();
+  });
+  filterCompanies();
+})();
+</script>
 {% endblock %}
