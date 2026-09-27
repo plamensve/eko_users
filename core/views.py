@@ -513,6 +513,24 @@ def analytics(request):
 
 
 @login_required
+def analytics_excel(request):
+    from django.http import HttpResponse
+    from .analytics_export import generate_analytics_workbook
+
+    report_type = request.GET.get('report', 'full')
+    if report_type not in ('first', 'second', 'full'):
+        report_type = 'full'
+    try:
+        output = generate_analytics_workbook(report_type)
+    except ValueError as exc:
+        messages.error(request, str(exc))
+        return redirect(f"{reverse('analytics')}?report={report_type}")
+    response = HttpResponse(output.getvalue(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename="companies_summary_{report_type}.xlsx"'
+    return response
+
+
+@login_required
 def company_prices(request, company_id):
     company = get_object_or_404(Company, id=company_id)
     prices = Price.objects.filter(company=company).order_by('date', 'product', 'id')
