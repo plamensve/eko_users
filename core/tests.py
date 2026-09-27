@@ -10,7 +10,7 @@ from django.urls import reverse
 
 from .models import Card, Company, Price, Transaction
 from .services import calculate_pricing
-from .utils import ImportResult, get_company_report_data, get_invoice_period
+from .utils import ImportResult, get_company_report_data, get_invoice_period, relink_data
 
 
 class PricingRulesTests(TestCase):
@@ -237,6 +237,24 @@ class PriceUploadTests(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(username="importer", password="safe-test-password")
         self.client.force_login(self.user)
+
+    def test_relink_legacy_prices_with_duplicate_keys_keeps_existing_records(self):
+        company = Company.objects.create(name="ПОДИ ЕООД", eik="204195863")
+        existing = Price.objects.create(date=date(2026, 9, 1), company=company, product="DIESEL", final_price="1.5000")
+        duplicate = Price.objects.create(date=date(2026, 9, 1), company_eik_tmp=company.eik, product="DIESEL", final_price="1.6000")
+        later_duplicate = Price.objects.create(date=date(2026, 9, 1), company_name_tmp=company.name, product="DIESEL", final_price="1.7000")
+        unique = Price.objects.create(date=date(2026, 9, 2), company_eik_tmp=company.eik, product="DIESEL", final_price="1.8000")
+
+        self.assertEqual(relink_data(), (0, 1))
+        self.assertEqual(relink_data(), (0, 0))
+        existing.refresh_from_db()
+        duplicate.refresh_from_db()
+        later_duplicate.refresh_from_db()
+        unique.refresh_from_db()
+        self.assertEqual(existing.final_price, Decimal("1.5000"))
+        self.assertIsNone(duplicate.company_id)
+        self.assertIsNone(later_duplicate.company_id)
+        self.assertEqual(unique.company_id, company.id)
 
     @patch("core.views.import_prices", return_value=ImportResult(created=10, updated=2, skipped=0))
     def test_multiple_price_files_stay_on_upload_page_with_success_message(self, mocked_import):
