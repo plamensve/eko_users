@@ -44,3 +44,14 @@ class ProjectAccessTests(TestCase):
         self.task.refresh_from_db()
         self.assertIsNone(self.task.assignee)
         self.assertFalse(ProjectMember.objects.filter(project=self.project, user=self.outsider).exists())
+
+    def test_my_tasks_filters_only_assigned_and_accessible(self):
+        Task.objects.create(project=self.project, title='Моя задача', assignee=self.member)
+        Task.objects.create(project=self.project, title='Готова', assignee=self.member, status=Task.DONE)
+        self.client.force_login(self.member)
+        response = self.client.get(reverse('tasks:my_tasks'))
+        self.assertContains(response, 'Моя задача')
+        self.assertNotContains(response, 'Готова')
+        response = self.client.get(reverse('tasks:my_tasks') + '?view=completed')
+        self.assertContains(response, 'Готова')
+        self.assertNotContains(response, 'Моя задача')

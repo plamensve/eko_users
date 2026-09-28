@@ -4,6 +4,7 @@ from . import views
 app_name = 'tasks'
 urlpatterns = [
     path('', views.projects, name='projects'),
+    path('mine/', views.my_tasks, name='my_tasks'),
     path('new/', views.project_new, name='project_new'),
     path('<int:project_id>/', views.board, name='board'),
     path('<int:project_id>/settings/', views.project_settings, name='settings'),

@@ -1,12 +1,21 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
+from django.utils import timezone
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from .forms import CommentForm, MemberForm, ProjectForm, TaskForm
 from .models import Project, ProjectMember, Task
+
+
+def render_tasks(request, template, context):
+    visible = Project.objects.filter(memberships__user=request.user)
+    context['sidebar_projects'] = visible.filter(archived=False).order_by('name')[:10]
+    context['sidebar_open_count'] = Task.objects.filter(project__in=visible, assignee=request.user).exclude(status=Task.DONE).count()
+    context['sidebar_overdue_count'] = Task.objects.filter(project__in=visible, assignee=request.user, due_date__lt=timezone.localdate()).exclude(status=Task.DONE).count()
+    return render(request, template, context)
 
 
 def accessible_project(user, project_id):
@@ -17,7 +26,23 @@ def accessible_project(user, project_id):
 
 def projects(request):
     items = Project.objects.filter(memberships__user=request.user).annotate(total=Count('tasks', distinct=True), completed=Count('tasks', filter=Q(tasks__status=Task.DONE), distinct=True))
-    return render(request, 'tasks/projects.html', {'projects': items})
+    return render_tasks(request, 'tasks/projects.html', {'projects': items})
+
+
+@login_required
+def my_tasks(request):
+    scope = request.GET.get('view', 'open')
+    if scope not in ('open', 'overdue', 'completed'):
+        scope = 'open'
+    query = Task.objects.filter(project__memberships__user=request.user, assignee=request.user).select_related('project').distinct()
+    if scope == 'completed':
+        query = query.filter(status=Task.DONE)
+    else:
+        query = query.exclude(status=Task.DONE)
+        if scope == 'overdue':
+            query = query.filter(due_date__lt=timezone.localdate())
+    query = query.order_by('due_date', '-priority', 'created_at')
+    return render_tasks(request, 'tasks/my_tasks.html', {'tasks': query, 'view': scope})
 
 
 @login_required
@@ -30,7 +55,7 @@ def project_new(request):
         project.save()
         ProjectMember.objects.create(project=project, user=request.user)
         return redirect('tasks:board', project_id=project.pk)
-    return render(request, 'tasks/form.html', {'form': form, 'heading': 'Нов проект', 'back_url': '/tasks/'})
+    return render_tasks(request, 'tasks/form.html', {'form': form, 'heading': 'Нов проект', 'back_url': '/tasks/'})
 
 
 @login_required
@@ -50,7 +75,7 @@ def board(request, project_id):
     if priority in dict(Task.PRIORITIES):
         query = query.filter(priority=priority)
     columns = [(key, label, list(query.filter(status=key))) for key, label in Task.STATUSES]
-    return render(request, 'tasks/board.html', {'project': project, 'columns': columns, 'search': search, 'assignee_filter': assignee, 'priority_filter': priority, 'priorities': Task.PRIORITIES})
+    return render_tasks(request, 'tasks/board.html', {'project': project, 'columns': columns, 'search': search, 'assignee_filter': assignee, 'priority_filter': priority, 'priorities': Task.PRIORITIES, 'total_tasks': project.tasks.count(), 'done_tasks': project.tasks.filter(status=Task.DONE).count(), 'overdue_tasks': project.tasks.filter(due_date__lt=timezone.localdate()).exclude(status=Task.DONE).count(), 'member_count': project.memberships.count()})
 
 
 @login_required
@@ -64,7 +89,7 @@ def project_settings(request, project_id):
         form.save()
         messages.success(request, 'Проектът е обновен.')
         return redirect('tasks:settings', project_id=project.pk)
-    return render(request, 'tasks/settings.html', {'project': project, 'form': form, 'member_form': MemberForm(), 'members': project.memberships.select_related('user')})
+    return render_tasks(request, 'tasks/settings.html', {'project': project, 'form': form, 'member_form': MemberForm(), 'members': project.memberships.select_related('user')})
 
 
 @login_required
@@ -111,7 +136,7 @@ def task_new(request, project_id):
         task.position = (project.tasks.order_by('-position').values_list('position', flat=True).first() or 0) + 1
         task.save()
         return redirect('tasks:board', project_id=project.pk)
-    return render(request, 'tasks/form.html', {'form': form, 'heading': 'Нова задача', 'back_url': project.get_board_url if hasattr(project, 'get_board_url') else f'/tasks/{project.pk}/'})
+    return render_tasks(request, 'tasks/form.html', {'project': project, 'form': form, 'heading': 'Нова задача', 'back_url': project.get_board_url if hasattr(project, 'get_board_url') else f'/tasks/{project.pk}/'})
 
 
 @login_required
@@ -135,7 +160,7 @@ def task_detail(request, project_id, task_id):
             form.save()
             messages.success(request, 'Задачата е обновена.')
             return redirect('tasks:task_detail', project_id=project.pk, task_id=task.pk)
-    return render(request, 'tasks/detail.html', {'project': project, 'task': task, 'form': form, 'comment_form': comment_form, 'comments': task.comments.select_related('author')})
+    return render_tasks(request, 'tasks/detail.html', {'project': project, 'task': task, 'form': form, 'comment_form': comment_form, 'comments': task.comments.select_related('author')})
 
 
 @login_required
