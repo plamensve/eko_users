@@ -324,3 +324,19 @@ def calendar_entry_delete(request, entry_id):
     entry.delete()
     messages.success(request, 'Записът е изтрит.')
     return redirect(f"/tasks/calendar/?month={day:%Y-%m}&day={day:%Y-%m-%d}")
+
+
+@login_required
+@require_POST
+def task_priority(request, project_id, task_id):
+    project = accessible_project(request.user, project_id)
+    task = get_object_or_404(project.tasks, pk=task_id)
+    if project.archived or task.creator_id != request.user.pk:
+        return HttpResponseForbidden('Само създателят може да променя приоритета от таблото.')
+    priority = request.POST.get('priority')
+    if priority not in dict(Task.PRIORITIES):
+        return HttpResponseForbidden('Невалиден приоритет.')
+    task.priority = priority
+    task.save(update_fields=['priority', 'updated_at'])
+    messages.success(request, 'Приоритетът на задачата е обновен.')
+    return redirect('tasks:board', project_id=project.pk)

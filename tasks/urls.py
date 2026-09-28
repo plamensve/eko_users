@@ -19,6 +19,7 @@ urlpatterns = [
     path('<int:project_id>/members/<int:user_id>/remove/', views.member_remove, name='member_remove'),
     path('<int:project_id>/tasks/new/', views.task_new, name='task_new'),
     path('<int:project_id>/tasks/<int:task_id>/', views.task_detail, name='task_detail'),
+    path('<int:project_id>/tasks/<int:task_id>/priority/', views.task_priority, name='task_priority'),
     path('<int:project_id>/tasks/<int:task_id>/move/', views.task_move, name='task_move'),
     path('<int:project_id>/tasks/<int:task_id>/delete/', views.task_delete, name='task_delete'),
 ]

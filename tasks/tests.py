@@ -128,3 +128,19 @@ class ProjectAccessTests(TestCase):
         self.client.force_login(self.member)
         self.assertEqual(self.client.post(reverse('tasks:calendar_entry_delete', args=[entry.pk])).status_code, 302)
         self.assertFalse(CalendarEntry.objects.filter(pk=entry.pk).exists())
+
+    def test_kanban_priority_requires_creator_and_valid_value(self):
+        url = reverse('tasks:task_priority', args=[self.project.pk, self.task.pk])
+        self.client.force_login(self.member)
+        self.assertEqual(self.client.post(url, {'priority': 'urgent'}).status_code, 403)
+        self.client.force_login(self.owner)
+        self.assertEqual(self.client.post(url, {'priority': 'invalid'}).status_code, 403)
+        response = self.client.post(url, {'priority': 'urgent'}, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.task.refresh_from_db()
+        self.assertEqual(self.task.priority, 'urgent')
+        self.assertContains(response, 'tube-urgent')
+        self.assertContains(response, 'Приоритетът на задачата е обновен.')
+        self.project.archived = True
+        self.project.save()
+        self.assertEqual(self.client.post(url, {'priority': 'low'}).status_code, 403)
