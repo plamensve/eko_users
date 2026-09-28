@@ -81,8 +81,12 @@ def board(request, project_id):
     priority = request.GET.get('priority', '')
     if priority in dict(Task.PRIORITIES):
         query = query.filter(priority=priority)
-    columns = [(key, label, list(query.filter(status=key))) for key, label in Task.STATUSES]
-    return render_tasks(request, 'tasks/board.html', {'project': project, 'columns': columns, 'search': search, 'assignee_filter': assignee, 'priority_filter': priority, 'priorities': Task.PRIORITIES, 'total_tasks': project.tasks.count(), 'done_tasks': project.tasks.filter(status=Task.DONE).count(), 'overdue_tasks': project.tasks.filter(due_date__lt=timezone.localdate()).exclude(status=Task.DONE).count(), 'member_count': project.memberships.count(), 'attachments': project.attachments.filter(task__isnull=True)})
+    view = request.GET.get('view', 'board')
+    if view not in ('board', 'list'):
+        view = 'board'
+    columns = [(key, label, list(query.filter(status=key))) for key, label in Task.STATUSES] if view == 'board' else []
+    list_tasks = query.order_by('due_date', 'position', 'created_at') if view == 'list' else []
+    return render_tasks(request, 'tasks/board.html', {'project': project, 'view': view, 'columns': columns, 'list_tasks': list_tasks, 'search': search, 'assignee_filter': assignee, 'priority_filter': priority, 'priorities': Task.PRIORITIES, 'total_tasks': project.tasks.count(), 'done_tasks': project.tasks.filter(status=Task.DONE).count(), 'overdue_tasks': project.tasks.filter(due_date__lt=timezone.localdate()).exclude(status=Task.DONE).count(), 'member_count': project.memberships.count(), 'attachments': project.attachments.filter(task__isnull=True)})
 
 
 @login_required

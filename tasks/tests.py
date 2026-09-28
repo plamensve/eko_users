@@ -82,3 +82,13 @@ class ProjectAccessTests(TestCase):
         response = self.client.post(reverse('tasks:project_new'), {'name': 'План', 'start_date': '2026-10-10', 'target_date': '2026-10-01'})
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Крайният срок трябва да е след началната дата.')
+
+    def test_board_and_list_views_keep_project_access(self):
+        self.client.force_login(self.member)
+        board = self.client.get(reverse('tasks:board', args=[self.project.pk]))
+        self.assertContains(board, 'kanban-board')
+        listing = self.client.get(reverse('tasks:board', args=[self.project.pk]) + '?view=list&q=Проверка')
+        self.assertContains(listing, 'tasks-table')
+        self.assertContains(listing, 'Проверка')
+        self.client.force_login(self.outsider)
+        self.assertEqual(self.client.get(reverse('tasks:board', args=[self.project.pk]) + '?view=list').status_code, 404)
