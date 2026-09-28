@@ -4,6 +4,10 @@ from django.utils import timezone
 from .attachments import PRIVATE_STORAGE, attachment_path, validate_attachment
 
 
+def default_stages():
+    return [{"key": "todo", "label": "За изпълнение"}, {"key": "progress", "label": "В работа"}, {"key": "review", "label": "За преглед"}, {"key": "done", "label": "Готово"}]
+
+
 class Project(models.Model):
     name = models.CharField(max_length=180)
     description = models.TextField(blank=True)
@@ -16,6 +20,7 @@ class Project(models.Model):
     members = models.ManyToManyField(settings.AUTH_USER_MODEL, through='ProjectMember', related_name='task_projects')
     created_at = models.DateTimeField(auto_now_add=True)
     archived = models.BooleanField(default=False)
+    stages = models.JSONField(default=default_stages)
 
     class Meta:
         ordering = ['archived', '-created_at']
@@ -44,7 +49,7 @@ class Task(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='tasks')
     title = models.CharField(max_length=220)
     description = models.TextField(blank=True)
-    status = models.CharField(max_length=12, choices=STATUSES, default=TODO)
+    status = models.CharField(max_length=32, default=TODO)
     priority = models.CharField(max_length=10, choices=PRIORITIES, default='normal')
     assignee = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_tasks')
     creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='created_tasks')
@@ -56,6 +61,9 @@ class Task(models.Model):
     class Meta:
         ordering = ['position', 'created_at']
         indexes = [models.Index(fields=['project', 'status', 'position'])]
+
+    def get_status_display(self):
+        return dict((stage["key"], stage["label"]) for stage in self.project.stages).get(self.status, self.status)
 
     @property
     def overdue(self):

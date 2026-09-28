@@ -87,9 +87,9 @@ def board(request, project_id):
     view = request.GET.get('view', 'board')
     if view not in ('board', 'list'):
         view = 'board'
-    columns = [(key, label, list(query.filter(status=key))) for key, label in Task.STATUSES] if view == 'board' else []
+    columns = [(key, label, list(query.filter(status=key))) for key, label in [(stage["key"], stage["label"]) for stage in project.stages]] if view == 'board' else []
     list_tasks = query.order_by('due_date', 'position', 'created_at') if view == 'list' else []
-    return render_tasks(request, 'tasks/board.html', {'project': project, 'view': view, 'columns': columns, 'list_tasks': list_tasks, 'search': search, 'assignee_filter': assignee, 'priority_filter': priority, 'priorities': Task.PRIORITIES, 'total_tasks': project.tasks.count(), 'done_tasks': project.tasks.filter(status=Task.DONE).count(), 'overdue_tasks': project.tasks.filter(due_date__lt=timezone.localdate()).exclude(status=Task.DONE).count(), 'member_count': project.memberships.count(), 'attachments': project.attachments.filter(task__isnull=True)})
+    return render_tasks(request, 'tasks/board.html', {'project': project, 'view': view, 'columns': columns, 'list_tasks': list_tasks, 'search': search, 'assignee_filter': assignee, 'priority_filter': priority, 'priorities': Task.PRIORITIES, 'stages': project.stages, 'total_tasks': project.tasks.count(), 'done_tasks': project.tasks.filter(status=Task.DONE).count(), 'overdue_tasks': project.tasks.filter(due_date__lt=timezone.localdate()).exclude(status=Task.DONE).count(), 'member_count': project.memberships.count(), 'attachments': project.attachments.filter(task__isnull=True)})
 
 
 @login_required
@@ -185,7 +185,7 @@ def task_move(request, project_id, task_id):
         return HttpResponseForbidden('Проектът е архивиран.')
     task = get_object_or_404(project.tasks, pk=task_id)
     status = request.POST.get('status')
-    if status not in dict(Task.STATUSES):
+    if status not in {stage["key"] for stage in project.stages}:
         return HttpResponseForbidden('Невалиден статус.')
     task.status = status
     task.save(update_fields=['status', 'updated_at'])

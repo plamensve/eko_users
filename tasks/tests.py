@@ -144,3 +144,34 @@ class ProjectAccessTests(TestCase):
         self.project.archived = True
         self.project.save()
         self.assertEqual(self.client.post(url, {'priority': 'low'}).status_code, 403)
+
+class ProjectStagesTests(TestCase):
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+        self.owner = get_user_model().objects.create_user(username='stage_owner', password='pass')
+        self.client.force_login(self.owner)
+
+    def test_custom_steps_create_board_and_validate_moves(self):
+        response = self.client.post(reverse('tasks:project_new'), {
+            'name': 'Проект', 'stage_names': 'Планиране\nИзпълнение\nПроверка\nПриключено',
+        })
+        self.assertEqual(response.status_code, 302)
+        project = Project.objects.get(name='Проект')
+        self.assertEqual([s['label'] for s in project.stages], ['Планиране', 'Изпълнение', 'Проверка', 'Приключено'])
+        task = Task.objects.create(project=project, title='Задача', creator=self.owner)
+        self.assertContains(self.client.get(reverse('tasks:board', args=[project.pk])), 'Проверка')
+        key = project.stages[2]['key']
+        self.client.post(reverse('tasks:task_move', args=[project.pk, task.pk]), {'status': key})
+        task.refresh_from_db()
+        self.assertEqual(task.get_status_display(), 'Проверка')
+        self.assertEqual(self.client.post(reverse('tasks:task_move', args=[project.pk, task.pk]), {'status': 'invalid'}).status_code, 403)
+
+    def test_settings_cannot_remove_stage_with_tasks(self):
+        project = Project.objects.create(name='Проект', owner=self.owner)
+        ProjectMember.objects.create(project=project, user=self.owner)
+        Task.objects.create(project=project, title='Задача', status='review')
+        response = self.client.post(reverse('tasks:settings', args=[project.pk]), {
+            'name': project.name, 'stage_names': 'Начало\nРабота\nКрай',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Преместете задачите')

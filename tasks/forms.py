@@ -5,6 +5,7 @@ from .attachments import validate_attachment
 
 
 class ProjectForm(forms.ModelForm):
+    stage_names = forms.CharField(label="Стъпки на Канбан борда", widget=forms.Textarea(attrs={"rows": 5, "placeholder": "Една стъпка на ред"}), help_text="Въведете стъпките в желания ред. Последната означава завършена задача.")
     class Meta:
         model = Project
         fields = ['name', 'description', 'objective', 'deliverables', 'client', 'start_date', 'target_date']
@@ -13,8 +14,43 @@ class ProjectForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if not self.is_bound:
+            self.initial["stage_names"] = "\n".join(stage["label"] for stage in self.instance.stages) if self.instance.pk else "За изпълнение\nВ работа\nЗа преглед\nГотово"
         for field in ('start_date', 'target_date'):
             self.fields[field].input_formats = ['%Y-%m-%d']
+
+    def clean_stage_names(self):
+        names = [name.strip() for name in self.cleaned_data["stage_names"].splitlines()]
+        if not 2 <= len(names) <= 20 or any(not name or len(name) > 60 for name in names):
+            raise forms.ValidationError("Въведете от 2 до 20 стъпки, всяка до 60 знака.")
+        if len({name.casefold() for name in names}) != len(names):
+            raise forms.ValidationError("Имената на стъпките трябва да са различни.")
+        if self.instance.pk:
+            old = self.instance.stages
+            removed = [stage["key"] for stage in old[1:-1] if stage["key"] not in [item["key"] for item in old[1:len(names)-1]]]
+            if removed and self.instance.tasks.filter(status__in=removed).exists():
+                raise forms.ValidationError("Преместете задачите от премахваните стъпки преди запис.")
+        return names
+
+    def save(self, commit=True):
+        project = super().save(commit=False)
+        names = self.cleaned_data["stage_names"]
+        old = project.stages if project.pk else []
+        middle = [stage["key"] for stage in old[1:-1]]
+        used = set(stage["key"] for stage in old)
+        while len(middle) < len(names) - 2:
+            index = 1
+            while f"stage_{index}" in used:
+                index += 1
+            key = f"stage_{index}"
+            middle.append(key)
+            used.add(key)
+        keys = ["todo", *middle[:len(names)-2], "done"]
+        project.stages = [{"key": key, "label": label} for key, label in zip(keys, names)]
+        if commit:
+            project.save()
+            self.save_m2m()
+        return project
 
     def clean(self):
         data = super().clean()
@@ -49,6 +85,7 @@ class TaskForm(forms.ModelForm):
 
     def __init__(self, *args, project, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["status"] = forms.ChoiceField(label="Статус", choices=[(stage["key"], stage["label"]) for stage in project.stages])
         self.fields['assignee'].queryset = get_user_model().objects.filter(project_memberships__project=project).distinct().order_by('username')
         self.fields['assignee'].empty_label = 'Без отговорник'
         self.fields['due_date'].input_formats = ['%Y-%m-%d']
