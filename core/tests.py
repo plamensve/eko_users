@@ -102,7 +102,7 @@ class AccessTests(TestCase):
         self.assertContains(chains, "img/logos/himoil-icon.png")
         self.assertContains(home, "img/logos/gta-original-diamond.svg")
         self.assertContains(chains, 'width="78" height="78"', count=4)
-        self.assertContains(chains, "app.css?v=20260928-fixed-footer-sidebar-2")
+        self.assertContains(chains, "app.css?v=20260928-hidden-scrollbars-3")
         self.assertContains(chains, f'href="{reverse("index")}"')
 
     def test_login_redirects_to_gta_home(self):
