@@ -22,10 +22,11 @@
       {% if user.is_authenticated %}
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#appNav" aria-label="Навигация"><span class="navbar-toggler-icon"></span></button>
       <div class="collapse navbar-collapse" id="appNav">
-        {% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'fuel_card_chains' or request.resolver_match.url_name == 'profile' or request.resolver_match.url_name == 'change_password' %}
+        {% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'fuel_card_chains' or request.resolver_match.url_name == 'profile' or request.resolver_match.url_name == 'change_password' or request.resolver_match.namespace == 'tasks' %}
         <ul class="navbar-nav me-auto ms-lg-3 gap-lg-1">
           <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}"><i class="bi bi-house me-1"></i> Начало</a></li>
           <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'fuel_card_chains' %}active{% endif %}" href="{% url 'fuel_card_chains' %}"><i class="bi bi-credit-card me-1"></i> Картови зареждания</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'tasks' %}active{% endif %}" href="{% url 'tasks:projects' %}"><i class="bi bi-kanban me-1"></i> Проекти и задачи</a></li>
         </ul>
         {% else %}
         <ul class="navbar-nav me-auto ms-lg-3 gap-lg-1">
@@ -35,6 +36,7 @@
           <li class="nav-item"><a class="nav-link {% if 'company' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'company_list' %}"><i class="bi bi-buildings me-1"></i> Фирми</a></li>
           <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'card_list' %}active{% endif %}" href="{% url 'card_list' %}"><i class="bi bi-credit-card me-1"></i> Карти</a></li>
           <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'price_list' %}active{% endif %}" href="{% url 'price_list' %}"><i class="bi bi-tags me-1"></i> Цени</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'tasks:projects' %}"><i class="bi bi-kanban me-1"></i> Проекти и задачи</a></li>
           <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}" href="{% url 'analytics' %}"><i class="bi bi-bar-chart me-1"></i> Аналитика</a></li>
         </ul>
         {% endif %}
