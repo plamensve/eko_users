@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from .models import Project, Task, TaskComment
+from .models import CalendarEntry, Project, Task, TaskComment
 from .attachments import validate_attachment
 
 
@@ -62,3 +62,32 @@ class CommentForm(forms.ModelForm):
 
 class AttachmentForm(forms.Form):
     file = forms.FileField(label='Файл или снимка', validators=[validate_attachment], widget=forms.FileInput(attrs={'accept': '.png,.jpg,.jpeg,.webp,.gif,.pdf,.txt,.csv,.xlsx,.xls,.docx,.pptx,.zip'}))
+
+
+class CalendarEntryForm(forms.ModelForm):
+    class Meta:
+        model = CalendarEntry
+        fields = ['title', 'project', 'date', 'start_time', 'end_time', 'description']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
+            'start_time': forms.TimeInput(attrs={'type': 'time'}, format='%H:%M'),
+            'end_time': forms.TimeInput(attrs={'type': 'time'}, format='%H:%M'),
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }
+
+    def __init__(self, *args, user, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['project'].queryset = Project.objects.filter(memberships__user=user, archived=False).distinct().order_by('name')
+        self.fields['date'].input_formats = ['%Y-%m-%d']
+        self.fields['start_time'].input_formats = ['%H:%M']
+        self.fields['end_time'].input_formats = ['%H:%M']
+        if self.instance.pk and self.instance.project.archived:
+            self.fields['project'].queryset = self.fields['project'].queryset | Project.objects.filter(pk=self.instance.project_id, memberships__user=user)
+
+    def clean(self):
+        data = super().clean()
+        if data.get('end_time') and not data.get('start_time'):
+            self.add_error('start_time', 'Въведете начален час.')
+        if data.get('start_time') and data.get('end_time') and data['end_time'] <= data['start_time']:
+            self.add_error('end_time', 'Крайният час трябва да е след началния.')
+        return data

@@ -4,6 +4,10 @@ from . import views
 app_name = 'tasks'
 urlpatterns = [
     path('', views.projects, name='projects'),
+    path('calendar/', views.calendar_view, name='calendar'),
+    path('calendar/new/', views.calendar_entry_new, name='calendar_entry_new'),
+    path('calendar/<int:entry_id>/edit/', views.calendar_entry_edit, name='calendar_entry_edit'),
+    path('calendar/<int:entry_id>/delete/', views.calendar_entry_delete, name='calendar_entry_delete'),
     path('mine/', views.my_tasks, name='my_tasks'),
     path('new/', views.project_new, name='project_new'),
     path('<int:project_id>/', views.board, name='board'),

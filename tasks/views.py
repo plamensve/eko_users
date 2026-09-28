@@ -7,10 +7,13 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 from django.utils.http import content_disposition_header
 import mimetypes
+import calendar as calendar_module
+from collections import defaultdict
+from datetime import date, timedelta
 from pathlib import Path
 
-from .forms import AttachmentForm, CommentForm, MemberForm, ProjectForm, TaskForm
-from .models import Attachment, Project, ProjectMember, Task
+from .forms import AttachmentForm, CalendarEntryForm, CommentForm, MemberForm, ProjectForm, TaskForm
+from .models import Attachment, CalendarEntry, Project, ProjectMember, Task
 
 
 def render_tasks(request, template, context):
@@ -245,3 +248,79 @@ def attachment_delete(request, project_id, attachment_id):
     attachment.delete()
     messages.success(request, 'Файлът е премахнат.')
     return redirect('tasks:task_detail', project_id=project.pk, task_id=task_id) if task_id else redirect('tasks:board', project_id=project.pk)
+
+
+def _calendar_date(value, fallback):
+    try:
+        return date.fromisoformat(value)
+    except (TypeError, ValueError):
+        return fallback
+
+
+@login_required
+def calendar_view(request):
+    today = timezone.localdate()
+    month_value = request.GET.get('month', '')
+    try:
+        year, month = map(int, month_value.split('-'))
+        first = date(year, month, 1)
+    except (ValueError, TypeError):
+        first = today.replace(day=1)
+    weeks = calendar_module.Calendar(firstweekday=0).monthdatescalendar(first.year, first.month)
+    start, end = weeks[0][0], weeks[-1][-1]
+    previous_month = first - timedelta(days=1)
+    next_month = (first.replace(day=28) + timedelta(days=4)).replace(day=1)
+    selected = _calendar_date(request.GET.get('day'), today if today.month == first.month and today.year == first.year else first)
+    if selected.month != first.month or selected.year != first.year:
+        selected = first
+    visible_projects = Project.objects.filter(memberships__user=request.user)
+    entries = CalendarEntry.objects.filter(project__in=visible_projects, date__range=(start, end)).select_related('project', 'creator').distinct()
+    deadlines = Task.objects.filter(project__in=visible_projects, due_date__range=(start, end)).select_related('project').distinct()
+    by_date = defaultdict(list)
+    for entry in entries:
+        by_date[entry.date].append({'kind': 'entry', 'item': entry})
+    for task in deadlines:
+        by_date[task.due_date].append({'kind': 'task', 'item': task})
+    rows = [{'days': [{'date': day, 'in_month': day.month == first.month, 'is_today': day == today, 'selected': day == selected, 'items': by_date[day][:3], 'extra': max(0, len(by_date[day]) - 3)} for day in week]} for week in weeks]
+    return render_tasks(request, 'tasks/calendar.html', {'rows': rows, 'current_month': first, 'previous_month': previous_month, 'next_month': next_month, 'selected_day': selected, 'selected_items': by_date[selected], 'visible_projects': visible_projects.filter(archived=False)})
+
+
+@login_required
+def calendar_entry_new(request):
+    initial = {'date': _calendar_date(request.GET.get('date'), timezone.localdate())}
+    project_id = request.GET.get('project')
+    if project_id and project_id.isdigit():
+        initial['project'] = Project.objects.filter(pk=project_id, memberships__user=request.user, archived=False).first()
+    form = CalendarEntryForm(request.POST or None, user=request.user, initial=initial)
+    if request.method == 'POST' and form.is_valid():
+        entry = form.save(commit=False)
+        entry.creator = request.user
+        entry.save()
+        messages.success(request, 'Записът е добавен в календара.')
+        return redirect(f"/tasks/calendar/?month={entry.date:%Y-%m}&day={entry.date:%Y-%m-%d}")
+    return render_tasks(request, 'tasks/calendar_form.html', {'form': form, 'heading': 'Нов запис в календара'})
+
+
+@login_required
+def calendar_entry_edit(request, entry_id):
+    entry = get_object_or_404(CalendarEntry.objects.filter(project__memberships__user=request.user).select_related('project'), pk=entry_id)
+    if entry.project.archived:
+        return HttpResponseForbidden('Проектът е архивиран.')
+    form = CalendarEntryForm(request.POST or None, instance=entry, user=request.user)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Записът е обновен.')
+        return redirect(f"/tasks/calendar/?month={entry.date:%Y-%m}&day={entry.date:%Y-%m-%d}")
+    return render_tasks(request, 'tasks/calendar_form.html', {'form': form, 'heading': 'Редактиране на запис', 'entry': entry})
+
+
+@login_required
+@require_POST
+def calendar_entry_delete(request, entry_id):
+    entry = get_object_or_404(CalendarEntry.objects.filter(project__memberships__user=request.user).select_related('project'), pk=entry_id)
+    if request.user.pk not in (entry.creator_id, entry.project.owner_id):
+        return HttpResponseForbidden('Нямате право да изтриете записа.')
+    day = entry.date
+    entry.delete()
+    messages.success(request, 'Записът е изтрит.')
+    return redirect(f"/tasks/calendar/?month={day:%Y-%m}&day={day:%Y-%m-%d}")

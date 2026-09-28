@@ -92,3 +92,39 @@ class ProjectAccessTests(TestCase):
         self.assertContains(listing, 'Проверка')
         self.client.force_login(self.outsider)
         self.assertEqual(self.client.get(reverse('tasks:board', args=[self.project.pk]) + '?view=list').status_code, 404)
+
+    def test_calendar_shows_deadlines_and_entries_only_for_members(self):
+        from datetime import date
+        from .models import CalendarEntry
+        self.task.due_date = date(2026, 9, 18)
+        self.task.save()
+        entry = CalendarEntry.objects.create(project=self.project, title='Среща с екипа', date=date(2026, 9, 18), creator=self.owner)
+        self.client.force_login(self.member)
+        response = self.client.get(reverse('tasks:calendar') + '?month=2026-09&day=2026-09-18')
+        self.assertContains(response, 'Среща с екипа')
+        self.assertContains(response, 'Проверка')
+        self.assertContains(response, 'calendar-grid')
+        self.client.force_login(self.outsider)
+        response = self.client.get(reverse('tasks:calendar') + '?month=2026-09&day=2026-09-18')
+        self.assertNotContains(response, 'Среща с екипа')
+        self.assertEqual(self.client.get(reverse('tasks:calendar_entry_edit', args=[entry.pk])).status_code, 404)
+
+    def test_calendar_entry_creation_editing_and_project_membership(self):
+        from .models import CalendarEntry
+        self.client.force_login(self.member)
+        url = reverse('tasks:calendar_entry_new')
+        response = self.client.post(url, {'title': 'План', 'project': self.project.pk, 'date': '2026-10-04', 'start_time': '09:00', 'end_time': '10:00', 'description': 'Екипна среща'})
+        self.assertEqual(response.status_code, 302)
+        entry = CalendarEntry.objects.get(title='План')
+        response = self.client.post(reverse('tasks:calendar_entry_edit', args=[entry.pk]), {'title': 'Обновен план', 'project': self.project.pk, 'date': '2026-10-05', 'start_time': '09:00', 'end_time': '10:00'})
+        self.assertEqual(response.status_code, 302)
+        entry.refresh_from_db()
+        self.assertEqual(entry.title, 'Обновен план')
+        self.client.force_login(self.outsider)
+        response = self.client.post(reverse('tasks:calendar_entry_new'), {'title': 'Чужд запис', 'project': self.project.pk, 'date': '2026-10-05'})
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(CalendarEntry.objects.filter(title='Чужд запис').exists())
+        self.assertEqual(self.client.post(reverse('tasks:calendar_entry_delete', args=[entry.pk])).status_code, 404)
+        self.client.force_login(self.member)
+        self.assertEqual(self.client.post(reverse('tasks:calendar_entry_delete', args=[entry.pk])).status_code, 302)
+        self.assertFalse(CalendarEntry.objects.filter(pk=entry.pk).exists())

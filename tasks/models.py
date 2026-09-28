@@ -85,3 +85,20 @@ class Attachment(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+class CalendarEntry(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='calendar_entries')
+    title = models.CharField(max_length=180, verbose_name='Заглавие')
+    description = models.TextField(blank=True, verbose_name='Описание')
+    date = models.DateField(db_index=True, verbose_name='Дата')
+    start_time = models.TimeField(null=True, blank=True, verbose_name='Начален час')
+    end_time = models.TimeField(null=True, blank=True, verbose_name='Краен час')
+    creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='calendar_entries')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['date', 'start_time', 'pk']
+
+    def __str__(self):
+        return self.title
