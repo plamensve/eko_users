@@ -1,11 +1,17 @@
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+from .attachments import PRIVATE_STORAGE, attachment_path, validate_attachment
 
 
 class Project(models.Model):
     name = models.CharField(max_length=180)
     description = models.TextField(blank=True)
+    objective = models.TextField(blank=True, verbose_name='Цел на проекта')
+    deliverables = models.TextField(blank=True, verbose_name='Очаквани резултати')
+    client = models.CharField(max_length=180, blank=True, verbose_name='Клиент / отдел')
+    start_date = models.DateField(null=True, blank=True, verbose_name='Начална дата')
+    target_date = models.DateField(null=True, blank=True, verbose_name='Краен срок')
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='owned_projects')
     members = models.ManyToManyField(settings.AUTH_USER_MODEL, through='ProjectMember', related_name='task_projects')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -67,3 +73,15 @@ class TaskComment(models.Model):
 
     class Meta:
         ordering = ['created_at']
+
+
+class Attachment(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='attachments')
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='attachments', null=True, blank=True)
+    file = models.FileField(storage=PRIVATE_STORAGE, upload_to=attachment_path, validators=[validate_attachment])
+    original_name = models.CharField(max_length=255)
+    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']

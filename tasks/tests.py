@@ -55,3 +55,30 @@ class ProjectAccessTests(TestCase):
         response = self.client.get(reverse('tasks:my_tasks') + '?view=completed')
         self.assertContains(response, 'Готова')
         self.assertNotContains(response, 'Моя задача')
+
+    def test_member_edits_task_and_nonmember_cannot_download_attachment(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from .models import Attachment
+        self.client.force_login(self.member)
+        response = self.client.post(reverse('tasks:task_detail', args=[self.project.pk, self.task.pk]), {
+            'title': 'Нова версия', 'description': 'Описание', 'status': 'progress', 'priority': 'high', 'assignee': str(self.member.pk), 'due_date': '',
+        })
+        self.assertEqual(response.status_code, 302)
+        self.task.refresh_from_db()
+        self.assertEqual(self.task.title, 'Нова версия')
+        upload = SimpleUploadedFile('sample.png', b'fake-image-content', content_type='image/png')
+        response = self.client.post(reverse('tasks:attachment_upload', args=[self.project.pk]), {'task_id': self.task.pk, 'file': upload})
+        self.assertEqual(response.status_code, 302)
+        attachment = Attachment.objects.get(project=self.project)
+        try:
+            self.assertEqual(self.client.get(reverse('tasks:attachment_download', args=[self.project.pk, attachment.pk])).status_code, 200)
+            self.client.force_login(self.outsider)
+            self.assertEqual(self.client.get(reverse('tasks:attachment_download', args=[self.project.pk, attachment.pk])).status_code, 404)
+        finally:
+            attachment.file.delete(save=False)
+
+    def test_invalid_project_dates(self):
+        self.client.force_login(self.owner)
+        response = self.client.post(reverse('tasks:project_new'), {'name': 'План', 'start_date': '2026-10-10', 'target_date': '2026-10-01'})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Крайният срок трябва да е след началната дата.')

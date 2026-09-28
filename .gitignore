@@ -10,3 +10,5 @@ staticfiles/
 media/temp_*
 *.log
 ~$*.xlsx
+
+private_uploads/

@@ -2,12 +2,15 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from django.utils import timezone
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, FileResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+from django.utils.http import content_disposition_header
+import mimetypes
+from pathlib import Path
 
-from .forms import CommentForm, MemberForm, ProjectForm, TaskForm
-from .models import Project, ProjectMember, Task
+from .forms import AttachmentForm, CommentForm, MemberForm, ProjectForm, TaskForm
+from .models import Attachment, Project, ProjectMember, Task
 
 
 def render_tasks(request, template, context):
@@ -49,13 +52,17 @@ def my_tasks(request):
 
 def project_new(request):
     form = ProjectForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
+    upload_form = AttachmentForm(request.POST, request.FILES) if request.FILES else None
+    if request.method == 'POST' and form.is_valid() and (upload_form is None or upload_form.is_valid()):
         project = form.save(commit=False)
         project.owner = request.user
         project.save()
         ProjectMember.objects.create(project=project, user=request.user)
+        if upload_form:
+            upload = upload_form.cleaned_data['file']
+            Attachment.objects.create(project=project, file=upload, original_name=Path(upload.name).name[:255], uploaded_by=request.user)
         return redirect('tasks:board', project_id=project.pk)
-    return render_tasks(request, 'tasks/form.html', {'form': form, 'heading': 'Нов проект', 'back_url': '/tasks/'})
+    return render_tasks(request, 'tasks/form.html', {'form': form, 'upload_form': upload_form, 'heading': 'Нов проект', 'back_url': '/tasks/'})
 
 
 @login_required
@@ -75,7 +82,7 @@ def board(request, project_id):
     if priority in dict(Task.PRIORITIES):
         query = query.filter(priority=priority)
     columns = [(key, label, list(query.filter(status=key))) for key, label in Task.STATUSES]
-    return render_tasks(request, 'tasks/board.html', {'project': project, 'columns': columns, 'search': search, 'assignee_filter': assignee, 'priority_filter': priority, 'priorities': Task.PRIORITIES, 'total_tasks': project.tasks.count(), 'done_tasks': project.tasks.filter(status=Task.DONE).count(), 'overdue_tasks': project.tasks.filter(due_date__lt=timezone.localdate()).exclude(status=Task.DONE).count(), 'member_count': project.memberships.count()})
+    return render_tasks(request, 'tasks/board.html', {'project': project, 'columns': columns, 'search': search, 'assignee_filter': assignee, 'priority_filter': priority, 'priorities': Task.PRIORITIES, 'total_tasks': project.tasks.count(), 'done_tasks': project.tasks.filter(status=Task.DONE).count(), 'overdue_tasks': project.tasks.filter(due_date__lt=timezone.localdate()).exclude(status=Task.DONE).count(), 'member_count': project.memberships.count(), 'attachments': project.attachments.filter(task__isnull=True)})
 
 
 @login_required
@@ -160,7 +167,7 @@ def task_detail(request, project_id, task_id):
             form.save()
             messages.success(request, 'Задачата е обновена.')
             return redirect('tasks:task_detail', project_id=project.pk, task_id=task.pk)
-    return render_tasks(request, 'tasks/detail.html', {'project': project, 'task': task, 'form': form, 'comment_form': comment_form, 'comments': task.comments.select_related('author')})
+    return render_tasks(request, 'tasks/detail.html', {'project': project, 'task': task, 'form': form, 'comment_form': comment_form, 'comments': task.comments.select_related('author'), 'attachments': task.attachments.all()})
 
 
 @login_required
@@ -190,3 +197,47 @@ def task_delete(request, project_id, task_id):
     task.delete()
     messages.success(request, 'Задачата е изтрита.')
     return redirect('tasks:board', project_id=project.pk)
+
+
+@login_required
+@require_POST
+def attachment_upload(request, project_id):
+    project = accessible_project(request.user, project_id)
+    if project.archived:
+        return HttpResponseForbidden('Проектът е архивиран.')
+    task_id = request.POST.get('task_id')
+    task = get_object_or_404(project.tasks, pk=task_id) if task_id else None
+    form = AttachmentForm(request.POST, request.FILES)
+    if form.is_valid():
+        upload = form.cleaned_data['file']
+        Attachment.objects.create(project=project, task=task, file=upload, original_name=Path(upload.name).name[:255], uploaded_by=request.user)
+        messages.success(request, 'Файлът е прикачен.')
+    else:
+        messages.error(request, ' '.join(str(error) for errors in form.errors.values() for error in errors))
+    return redirect('tasks:task_detail', project_id=project.pk, task_id=task.pk) if task else redirect('tasks:board', project_id=project.pk)
+
+
+@login_required
+def attachment_download(request, project_id, attachment_id):
+    project = accessible_project(request.user, project_id)
+    attachment = get_object_or_404(project.attachments, pk=attachment_id)
+    mime = mimetypes.guess_type(attachment.original_name)[0] or 'application/octet-stream'
+    inline = mime.startswith('image/') and mime in ('image/png', 'image/jpeg', 'image/webp', 'image/gif')
+    response = FileResponse(attachment.file.open('rb'), content_type=mime)
+    response['Content-Disposition'] = content_disposition_header(as_attachment=not inline, filename=attachment.original_name)
+    response['X-Content-Type-Options'] = 'nosniff'
+    return response
+
+
+@login_required
+@require_POST
+def attachment_delete(request, project_id, attachment_id):
+    project = accessible_project(request.user, project_id)
+    attachment = get_object_or_404(project.attachments.select_related('task'), pk=attachment_id)
+    if request.user.pk not in (project.owner_id, attachment.uploaded_by_id):
+        return HttpResponseForbidden('Нямате право да премахнете файла.')
+    task_id = attachment.task_id
+    attachment.file.delete(save=False)
+    attachment.delete()
+    messages.success(request, 'Файлът е премахнат.')
+    return redirect('tasks:task_detail', project_id=project.pk, task_id=task_id) if task_id else redirect('tasks:board', project_id=project.pk)

@@ -54,7 +54,7 @@
     </div>
   </nav>
 
-  <main class="page-shell">
+  <main class="page-shell {% if request.resolver_match.namespace == 'tasks' %}tasks-page-shell{% endif %}">
     {% if messages %}
       {% for message in messages %}
         <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm" role="alert">
