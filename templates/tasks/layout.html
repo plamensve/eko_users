@@ -1,8 +1,9 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
 <div class="tasks-workspace">
   <aside class="tasks-sidebar" aria-label="Навигация за проекти и задачи">
-    <div class="tasks-sidebar-brand"><span class="tasks-sidebar-mark"><i class="bi bi-command"></i></span><span><strong>Работно пространство</strong><small>GTA MANAGER</small></span></div>
+    <div class="tasks-sidebar-brand"><span class="tasks-sidebar-mark"><img src="{% static 'img/logos/projects-module.svg' %}" alt="" width="40" height="40"></span><span><strong>Проекти и задачи</strong><small>GTA MANAGER</small></span></div>
     <div class="tasks-sidebar-label">РАБОТА</div>
     <nav class="tasks-sidebar-nav">
       <a href="{% url 'tasks:projects' %}" class="{% if request.resolver_match.url_name == 'projects' %}active{% endif %}"><i class="bi bi-grid-1x2"></i> Всички проекти <i class="bi bi-chevron-right ms-auto nav-chevron"></i></a>
@@ -19,3 +20,5 @@
   <div class="tasks-main">{% block tasks_content %}{% endblock %}</div>
 </div>
 {% endblock %}
+
+{% block scripts %}<script src="{% static 'js/task-controls.js' %}?v=1" defer></script>{% endblock %}

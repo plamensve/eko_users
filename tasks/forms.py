@@ -8,6 +8,7 @@ class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
         fields = ['name', 'description', 'objective', 'deliverables', 'client', 'start_date', 'target_date']
+        labels = {'name': 'Име на проекта', 'description': 'Описание'}
         widgets = {'description': forms.Textarea(attrs={'rows': 3}), 'objective': forms.Textarea(attrs={'rows': 3}), 'deliverables': forms.Textarea(attrs={'rows': 3}), 'start_date': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'), 'target_date': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d')}
 
     def __init__(self, *args, **kwargs):
@@ -40,6 +41,7 @@ class TaskForm(forms.ModelForm):
     class Meta:
         model = Task
         fields = ['title', 'description', 'status', 'priority', 'assignee', 'due_date']
+        labels = {'title': 'Заглавие', 'description': 'Описание', 'status': 'Статус', 'priority': 'Приоритет', 'assignee': 'Отговорник', 'due_date': 'Краен срок'}
         widgets = {
             'description': forms.Textarea(attrs={'rows': 5}),
             'due_date': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
@@ -68,6 +70,7 @@ class CalendarEntryForm(forms.ModelForm):
     class Meta:
         model = CalendarEntry
         fields = ['title', 'project', 'date', 'start_time', 'end_time', 'description']
+        labels = {'project': 'Проект'}
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
             'start_time': forms.TimeInput(attrs={'type': 'time'}, format='%H:%M'),
