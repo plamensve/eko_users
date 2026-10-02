@@ -107,6 +107,35 @@ def project_settings(request, project_id):
 
 
 @login_required
+def project_delete(request, project_id):
+    project = accessible_project(request.user, project_id)
+    if project.owner_id != request.user.pk:
+        return HttpResponseForbidden('Само собственикът може да изтрие проекта.')
+
+    if request.method == 'POST':
+        confirmation = request.POST.get('project_name', '').strip()
+        if confirmation != project.name:
+            messages.error(request, 'Въведете точното име на проекта, за да потвърдите изтриването.')
+            return render_tasks(request, 'tasks/project_delete.html', {
+                'project': project,
+                'confirmation_value': confirmation,
+            })
+
+        # FileField does not remove storage objects automatically on cascade.
+        # Delete project/task attachments from storage before deleting the project.
+        for attachment in project.attachments.all():
+            if attachment.file:
+                attachment.file.delete(save=False)
+
+        project_name = project.name
+        project.delete()
+        messages.success(request, f'Проектът „{project_name}“ е изтрит.')
+        return redirect('tasks:projects')
+
+    return render_tasks(request, 'tasks/project_delete.html', {'project': project})
+
+
+@login_required
 @require_POST
 def member_add(request, project_id):
     project = accessible_project(request.user, project_id)
