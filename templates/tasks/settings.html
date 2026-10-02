@@ -1,3 +1,96 @@
 {% extends 'tasks/layout.html' %}
 {% block title %}Настройки · {{ project.name }}{% endblock %}
-{% block tasks_content %}<div class="tasks-shell"><a class="tasks-back" href="{% url 'tasks:board' project.pk %}"><i class="bi bi-arrow-left"></i> Към таблото</a><div class="tasks-heading"><div><span class="tasks-eyebrow">УПРАВЛЕНИЕ НА ПРОЕКТ</span><h1>{{ project.name }}</h1></div></div><div class="row g-4"><div class="col-lg-6"><div class="tasks-panel"><h2><i class="bi bi-journal-text me-2"></i>Данни за проекта</h2><form method="post">{% csrf_token %}{% for field in form %}<div class="mb-3"><label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>{{ field }}{% if field.help_text %}<small class="text-muted d-block mt-1">{{ field.help_text }}</small>{% endif %}{{ field.errors }}</div>{% endfor %}<button class="btn btn-success">Запази промените</button></form></div></div><div class="col-lg-6"><div class="tasks-panel"><h2>Участници</h2><p class="text-muted">Добавете потребител с вече създаден акаунт в GTA Manager.</p><form method="post" action="{% url 'tasks:member_add' project.pk %}" class="d-flex gap-2 mb-4">{% csrf_token %}<input type="text" name="account" class="form-control" required placeholder="Потребител или имейл" aria-label="Потребител или имейл"><button class="btn btn-success">Добави</button></form>{% for membership in members %}<div class="task-member"><span><i class="bi bi-person-circle me-2"></i>{{ membership.user.get_full_name|default:membership.user.username }} {% if membership.user_id == project.owner_id %}<span class="badge text-bg-success">Собственик</span>{% endif %}</span>{% if membership.user_id != project.owner_id %}<form method="post" action="{% url 'tasks:member_remove' project.pk membership.user_id %}">{% csrf_token %}<button class="btn btn-sm btn-outline-danger" onclick="return confirm('Премахване на участника?')">Премахни</button></form>{% endif %}</div>{% endfor %}</div></div></div><div class="mt-4">{% include "tasks/_attachments.html" %}</div></div>{% endblock %}
+{% block tasks_content %}
+<div class="tasks-shell">
+  <a class="tasks-back" href="{% url 'tasks:board' project.pk %}"><i class="bi bi-arrow-left"></i> Към таблото</a>
+
+  <div class="tasks-heading tasks-page-header">
+    <div>
+      <span class="tasks-eyebrow"><i class="bi bi-gear me-1"></i> НАСТРОЙКИ НА ПРОЕКТА</span>
+      <h1>{{ project.name }}</h1>
+      <p>Управлявайте данните, Канбан стъпките, участниците и достъпа до проекта.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{% url 'tasks:board' project.pk %}">
+      <i class="bi bi-kanban me-1"></i> Канбан табло
+    </a>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-xl-7">
+      <div class="tasks-panel project-settings-panel">
+        <div class="tasks-panel-heading">
+          <span class="task-project-icon"><i class="bi bi-sliders"></i></span>
+          <div>
+            <h2>Данни и работен процес</h2>
+            <p>Редактирайте информацията и стъпките на Канбан борда.</p>
+          </div>
+        </div>
+        <form method="post">
+          {% csrf_token %}
+          {% for field in form %}
+          <div class="mb-3">
+            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}<small class="text-muted d-block mt-1">{{ field.help_text }}</small>{% endif %}
+            {{ field.errors }}
+          </div>
+          {% endfor %}
+          <button class="btn btn-success" type="submit"><i class="bi bi-check2 me-1"></i> Запази промените</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="col-xl-5">
+      <div class="tasks-panel">
+        <div class="tasks-panel-heading">
+          <span class="task-project-icon"><i class="bi bi-people"></i></span>
+          <div>
+            <h2>Участници</h2>
+            <p>Добавете потребители с акаунт в GTA Manager.</p>
+          </div>
+        </div>
+
+        <form method="post" action="{% url 'tasks:member_add' project.pk %}" class="d-flex gap-2 mb-4">
+          {% csrf_token %}
+          <input type="text" name="account" class="form-control" required placeholder="Потребител или имейл" aria-label="Потребител или имейл">
+          <button class="btn btn-success" type="submit">Добави</button>
+        </form>
+
+        <div class="project-members-list">
+          {% for membership in members %}
+          <div class="task-member">
+            <span>
+              <i class="bi bi-person-circle me-2"></i>
+              {{ membership.user.get_full_name|default:membership.user.username }}
+              {% if membership.user_id == project.owner_id %}<span class="badge text-bg-success">Собственик</span>{% endif %}
+            </span>
+            {% if membership.user_id != project.owner_id %}
+            <form method="post" action="{% url 'tasks:member_remove' project.pk membership.user_id %}">
+              {% csrf_token %}
+              <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Премахване на участника?')" type="submit">Премахни</button>
+            </form>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4">{% include "tasks/_attachments.html" %}</div>
+
+  <div class="tasks-panel project-danger-zone mt-4">
+    <div class="project-danger-zone-copy">
+      <span class="project-danger-icon"><i class="bi bi-exclamation-triangle"></i></span>
+      <div>
+        <span class="tasks-eyebrow">ОПАСНА ЗОНА</span>
+        <h2>Изтриване на проекта</h2>
+        <p>Изтрива проекта, задачите, коментарите, календарните записи и прикачените файлове.</p>
+      </div>
+    </div>
+    <a class="btn btn-outline-danger" href="{% url 'tasks:project_delete' project.pk %}">
+      <i class="bi bi-trash3 me-1"></i> Изтрий проекта
+    </a>
+  </div>
+</div>
+{% endblock %}
