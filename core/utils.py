@@ -156,6 +156,44 @@ def get_company_report_data(company, period="billing"):
     return rows, quantity6(totals["qty"]), amount3(totals["eko"]), amount3(totals["gta"]), profit6(totals["profit"])
 
 
+def get_unknown_report_data(period="full"):
+    """Return transactions whose card is not linked to a company as one Unknown group.
+
+    This mirrors the verified EKO pipeline, where the LEFT JOIN keeps unmatched
+    card numbers and the generated company name is "Unknown".
+    """
+    start_date, end_date = get_invoice_period(period)
+    transactions = Transaction.objects.filter(card__isnull=True).order_by("date", "id")
+    transactions = transactions.filter(date__range=(start_date, end_date)) if start_date and end_date else transactions.none()
+
+    rows, totals = [], {"qty": ZERO, "eko": ZERO, "gta": ZERO, "profit": ZERO}
+    for item in transactions:
+        # No company means no company price list. The reference pipeline falls
+        # back to the transaction EKO price for GTA pricing in this case.
+        calc = calculate_pricing(
+            quantity=item.bill_qty,
+            transaction_price=item.price,
+            product=item.material,
+            price_record=None,
+        )
+        qty = quantity6(item.bill_qty)
+        rows.append({
+            "date": item.date, "plant": item.plant, "card": item.card_number,
+            "vehicle": "", "material": item.material, "qty": qty,
+            "qty_type": item.bill_qty2 or "", "eko_base_price": calc.eko_base_price,
+            "gta_price": calc.gta_price, "discount": calc.discount, "margin": calc.margin,
+            "profit": calc.profit, "gta_total": calc.gta_total, "eko_price": round3(item.price),
+            "eko_total": calc.eko_total, "auth_time": item.auth_time, "km_stand": item.km_stand,
+            "billing_doc": item.billing_document or "", "has_price": False,
+        })
+        totals["qty"] += qty
+        totals["eko"] += calc.eko_total
+        totals["gta"] += calc.gta_total
+        totals["profit"] += calc.profit
+
+    return rows, quantity6(totals["qty"]), amount3(totals["eko"]), amount3(totals["gta"]), profit6(totals["profit"])
+
+
 def _safe_name(value):
     return re.sub(r"[\\/*?:\"<>|]", "_", str(value)).strip(" .") or "report"
 
