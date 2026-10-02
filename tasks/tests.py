@@ -45,6 +45,45 @@ class ProjectAccessTests(TestCase):
         self.assertIsNone(self.task.assignee)
         self.assertFalse(ProjectMember.objects.filter(project=self.project, user=self.outsider).exists())
 
+
+    def test_owner_has_project_settings_actions_and_member_does_not(self):
+        settings_url = reverse('tasks:settings', args=[self.project.pk])
+        delete_url = reverse('tasks:project_delete', args=[self.project.pk])
+
+        self.client.force_login(self.owner)
+        response = self.client.get(reverse('tasks:projects'))
+        self.assertContains(response, settings_url)
+        self.assertContains(response, delete_url)
+        self.assertContains(response, 'Настройки')
+
+        self.client.force_login(self.member)
+        response = self.client.get(reverse('tasks:projects'))
+        self.assertNotContains(response, settings_url)
+        self.assertNotContains(response, delete_url)
+
+    def test_only_owner_can_delete_project_and_name_confirmation_is_required(self):
+        delete_url = reverse('tasks:project_delete', args=[self.project.pk])
+
+        self.client.force_login(self.member)
+        self.assertEqual(self.client.get(delete_url).status_code, 403)
+        self.assertTrue(Project.objects.filter(pk=self.project.pk).exists())
+
+        self.client.force_login(self.owner)
+        response = self.client.get(delete_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Изтриване на проект')
+
+        response = self.client.post(delete_url, {'project_name': 'грешно име'})
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(Project.objects.filter(pk=self.project.pk).exists())
+        self.assertContains(response, 'Въведете точното име')
+
+        response = self.client.post(delete_url, {'project_name': self.project.name}, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Project.objects.filter(pk=self.project.pk).exists())
+        self.assertFalse(Task.objects.filter(pk=self.task.pk).exists())
+        self.assertContains(response, 'е изтрит')
+
     def test_my_tasks_filters_only_assigned_and_accessible(self):
         Task.objects.create(project=self.project, title='Моя задача', assignee=self.member)
         Task.objects.create(project=self.project, title='Готова', assignee=self.member, status=Task.DONE)
