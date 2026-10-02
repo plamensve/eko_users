@@ -1,5 +1,7 @@
 from django.db import models
 
+from .services import fuel_product_kind
+
 class Company(models.Model):
     name = models.CharField(max_length=255, unique=True, verbose_name="Име на фирма")
     eik = models.CharField(max_length=20, verbose_name="ЕИК")
@@ -41,19 +43,7 @@ class Price(models.Model):
 
     @property
     def product_kind(self):
-        # Imported EKO names can mix Latin and visually identical Cyrillic letters.
-        latin = str(self.product).upper().translate(str.maketrans(
-            "АВЕКМНОРСТУХІ", "ABEKMHOPCTYXI"
-        ))
-        if "LPG" in latin or "GAS" in latin:
-            return "lpg"
-        if "DIESEL" in latin:
-            return "premium-diesel" if "DOUBLE" in latin else "diesel"
-        if "100" in latin:
-            return "premium-petrol"
-        if "95" in latin:
-            return "petrol"
-        return "other"
+        return fuel_product_kind(self.product)
 
     def __str__(self):
         company = self.company.name if self.company else self.company_name_tmp or "Без фирма"
