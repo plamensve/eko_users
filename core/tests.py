@@ -361,7 +361,7 @@ class AnalyticsExcelTests(TestCase):
         self.assertContains(response, "Няма транзакции")
 
 
-    def test_analytics_includes_unknown_group_in_totals(self):
+    def test_analytics_includes_only_report_products_from_unknown_group(self):
         Transaction.objects.create(
             plant="1",
             card_number="UNLINKED-1",
@@ -372,6 +372,19 @@ class AnalyticsExcelTests(TestCase):
             price="2.500",
             amount="62.50",
         )
+        # The management Excel intentionally excludes products outside the
+        # configured five fuels. Web Analytics must use the same scope.
+        Transaction.objects.create(
+            plant="1",
+            card_number="UNLINKED-ADBLUE",
+            card=None,
+            material="ADBLUE",
+            date=date(2026, 9, 10),
+            bill_qty="198.470",
+            price="1.980",
+            amount="392.97",
+        )
+
         response = self.client.get(reverse("analytics"), {"report": "full"})
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Unknown")
