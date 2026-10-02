@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <link href="{% static 'css/app.css' %}?v=20261003-enterprise-ui-5" rel="stylesheet">
+  <link href="{% static 'css/app.css' %}?v=20261003-enterprise-ui-6" rel="stylesheet">
   {% block extra_head %}{% endblock %}
 </head>
 <body class="{% if request.resolver_match.namespace == 'tasks' %}app-mode-tasks{% elif request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'fuel_card_chains' or request.resolver_match.url_name == 'profile' or request.resolver_match.url_name == 'change_password' %}app-mode-main{% else %}app-mode-eko{% endif %}{% if user.is_authenticated and request.resolver_match.namespace != 'tasks' %} has-app-sidebar{% endif %}">
@@ -25,6 +25,19 @@
         <span class="brand-mark"><img src="{% static 'img/logos/gta-original-diamond.svg' %}" width="36" height="36" alt="GTA Petroleum"></span>
         <span class="app-brand-copy"><strong>GTA Manager</strong><small>Operations Console</small></span>
       </a>
+      {% if user.is_authenticated and request.resolver_match.url_name != 'home' %}
+      <button
+        class="app-back-button"
+        id="appBackButton"
+        type="button"
+        data-fallback="{% url 'home' %}"
+        title="Назад"
+        aria-label="Назад към предишната страница"
+      >
+        <i class="bi bi-arrow-left"></i>
+        <span>Назад</span>
+      </button>
+      {% endif %}
       <div class="app-topbar-context d-none d-md-flex">
         <i class="bi bi-chevron-right"></i>
         {% if request.resolver_match.namespace == 'tasks' %}
@@ -140,6 +153,28 @@
       const sidebar = document.getElementById('appSidebar');
       const toggle = document.getElementById('appSidebarToggle');
       const backdrop = document.getElementById('appSidebarBackdrop');
+      const backButton = document.getElementById('appBackButton');
+
+      if (backButton) {
+        backButton.addEventListener('click', () => {
+          const fallback = backButton.dataset.fallback || '/';
+          let canGoBackInsideApp = false;
+
+          if (document.referrer) {
+            try {
+              canGoBackInsideApp = new URL(document.referrer).origin === window.location.origin;
+            } catch (error) {
+              canGoBackInsideApp = false;
+            }
+          }
+
+          if (canGoBackInsideApp && window.history.length > 1) {
+            window.history.back();
+          } else {
+            window.location.href = fallback;
+          }
+        });
+      }
 
       const updateLayout = () => {
         if (header) root.style.setProperty('--app-header-height', `${Math.ceil(header.getBoundingClientRect().height)}px`);
