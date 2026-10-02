@@ -231,6 +231,8 @@ class PriceListTests(TestCase):
         self.assertContains(response, "bi-chevron-right")
         self.assertContains(response, "АЛФА ТРАНС")
         self.assertContains(response, "DIESEL")
+        self.assertContains(response, "fuel-pill fuel-pill--diesel")
+        self.assertContains(response, "bi-truck-front-fill")
         self.assertContains(response, "1.5000 €")
         self.assertContains(response, "1.5300 €")
         self.assertEqual(
