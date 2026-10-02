@@ -1,0 +1,54 @@
+{% extends 'tasks/layout.html' %}
+{% block title %}Изтриване · {{ project.name }}{% endblock %}
+{% block tasks_content %}
+<div class="tasks-shell">
+  <a class="tasks-back" href="{% url 'tasks:settings' project.pk %}"><i class="bi bi-arrow-left"></i> Към настройките</a>
+
+  <div class="tasks-heading">
+    <div>
+      <span class="tasks-eyebrow">ОПАСНА ЗОНА</span>
+      <h1>Изтриване на проект</h1>
+      <p>Това действие е необратимо.</p>
+    </div>
+  </div>
+
+  <div class="tasks-panel project-delete-panel">
+    <div class="project-delete-icon"><i class="bi bi-trash3"></i></div>
+    <div class="project-delete-content">
+      <h2>{{ project.name }}</h2>
+      <p>
+        Ще бъдат изтрити проектът, неговите задачи, коментари, календарни записи,
+        участници и всички прикачени файлове.
+      </p>
+
+      <div class="project-delete-warning">
+        <i class="bi bi-exclamation-triangle"></i>
+        <span>Изтриването не може да бъде отменено.</span>
+      </div>
+
+      <form method="post" class="project-delete-form">
+        {% csrf_token %}
+        <label for="project-delete-confirm" class="form-label">
+          За потвърждение въведете точно името на проекта:
+          <strong>{{ project.name }}</strong>
+        </label>
+        <input
+          id="project-delete-confirm"
+          type="text"
+          name="project_name"
+          class="form-control"
+          value="{{ confirmation_value|default:'' }}"
+          autocomplete="off"
+          required
+        >
+        <div class="project-delete-actions">
+          <a class="btn btn-outline-secondary" href="{% url 'tasks:settings' project.pk %}">Отказ</a>
+          <button class="btn btn-danger" type="submit">
+            <i class="bi bi-trash3 me-1"></i> Изтрий проекта
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
