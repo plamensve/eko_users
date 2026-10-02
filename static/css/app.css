@@ -1744,3 +1744,24 @@ body{padding-bottom:0!important}
     border-right:0;
   }
 }
+
+
+/* EKO context badge — inactive white brand treatment */
+.app-context-badge{
+  color:#111!important;
+  background:#fff!important;
+  border:1px solid #cfd6dc!important;
+  box-shadow:0 1px 2px rgba(0,0,0,.08)!important;
+  font-weight:700!important;
+}
+.app-context-badge:hover{
+  color:#111!important;
+  background:#f7f8f9!important;
+  border-color:#b8c2ca!important;
+}
+.app-context-badge img{
+  width:18px!important;
+  height:18px!important;
+  object-fit:contain!important;
+  background:#fff!important;
+}
