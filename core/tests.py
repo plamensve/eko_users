@@ -390,3 +390,30 @@ class AnalyticsExcelTests(TestCase):
         self.assertContains(response, "Unknown")
         self.assertEqual(response.context["grand_total_qty"], Decimal("55.000000"))
         self.assertEqual(response.context["grand_total_gta"], Decimal("107.500"))
+
+
+    def test_unknown_row_links_to_company_style_transaction_page(self):
+        Transaction.objects.create(
+            plant="1",
+            card_number="UNLINKED-DETAIL",
+            card=None,
+            material="DIESEL EKONOMY",
+            date=date(2026, 9, 10),
+            bill_qty="12.500",
+            price="2.000",
+            amount="25.00",
+        )
+        analytics_response = self.client.get(reverse("analytics"), {"report": "full"})
+        self.assertContains(
+            analytics_response,
+            f'href="{reverse("unknown_transactions")}?report=full"',
+        )
+
+        detail_response = self.client.get(reverse("unknown_transactions"), {"report": "full"})
+        self.assertEqual(detail_response.status_code, 200)
+        self.assertContains(detail_response, "Unknown")
+        self.assertContains(detail_response, "Несвързани транзакции")
+        self.assertContains(detail_response, "UNLINKED-DETAIL")
+        self.assertContains(detail_response, "DIESEL EKONOMY")
+        self.assertContains(detail_response, 'class="company-transactions-table"')
+        self.assertNotContains(detail_response, ">Цени</a>")
