@@ -175,6 +175,37 @@ def company_transactions(request, company_id):
 
 
 @login_required
+def unknown_transactions(request):
+    """Show unlinked card transactions as the virtual Unknown company."""
+    report_type = request.GET.get('report', 'full')
+
+    if report_type not in ('billing', 'first', 'second', 'full'):
+        report_type = 'full'
+
+    data, t_qty, t_eko, t_gta, t_profit = get_unknown_report_data(
+        period=report_type
+    )
+
+    company = {
+        'name': 'Unknown',
+        'eik': '',
+        'is_twice_monthly': False,
+        'note': None,
+    }
+
+    return render(request, 'core/company_transactions.html', {
+        'company': company,
+        'is_unknown': True,
+        'transactions': data,
+        'total_qty': t_qty,
+        'total_eko': t_eko,
+        'total_gta': t_gta,
+        'total_profit': t_profit,
+        'report_type': report_type,
+    })
+
+
+@login_required
 def export_excel(request, company_id):
     company = Company.objects.get(id=company_id)
 
