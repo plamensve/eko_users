@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import UploadFileForm, CompanyForm, CardForm
 from .utils import import_cards, import_prices, import_transactions, export_all_companies_zip, get_company_report_data, \
-    export_single_company_zip, normalize_text, relink_data
+    export_single_company_zip, get_unknown_report_data, normalize_text, relink_data
 from .models import Transaction, Company, Price, Card
 import os
 import tempfile
@@ -494,6 +494,11 @@ def analytics(request):
         if t_qty > 0:
             analytics_data.append({
                 'company': company,
+                'name': company.name,
+                'eik': company.eik,
+                'company_id': company.id,
+                'is_twice_monthly': company.is_twice_monthly,
+                'is_unknown': False,
                 'total_qty': t_qty,
                 'total_gta': t_gta,
                 'total_profit': t_profit
@@ -502,6 +507,26 @@ def analytics(request):
             grand_total_qty += t_qty
             grand_total_profit += t_profit
             grand_total_gta += t_gta
+
+    unknown_rows, unknown_qty, _unknown_eko, unknown_gta, unknown_profit = get_unknown_report_data(
+        period=report_type
+    )
+    if unknown_qty > 0:
+        analytics_data.append({
+            'company': None,
+            'name': 'Unknown',
+            'eik': '',
+            'company_id': None,
+            'is_twice_monthly': False,
+            'is_unknown': True,
+            'total_qty': unknown_qty,
+            'total_gta': unknown_gta,
+            'total_profit': unknown_profit,
+            'transaction_count': len(unknown_rows),
+        })
+        grand_total_qty += unknown_qty
+        grand_total_profit += unknown_profit
+        grand_total_gta += unknown_gta
 
     return render(request, 'core/analytics.html', {
         'analytics_data': analytics_data,
