@@ -14,17 +14,17 @@
 </div></div>
 <div class="row g-3 mb-4">
   <div class="col-6 col-xl-3"><div class="surface metric-card"><div class="metric-label">Количество</div><div class="metric-value">{{ total_qty|stringformat:'.2f' }}</div><div class="metric-meta">литра</div></div></div>
-  <div class="col-6 col-xl-3"><div class="surface metric-card"><div class="metric-label">Сума GTA</div><div class="metric-value">{{ total_gta|stringformat:'.2f' }} €</div></div></div>
-  <div class="col-6 col-xl-3"><div class="surface metric-card"><div class="metric-label">Сума ЕКО</div><div class="metric-value">{{ total_eko|stringformat:'.2f' }} €</div></div></div>
+  <div class="col-6 col-xl-3"><div class="surface metric-card"><div class="metric-label">Сума GTA</div><div class="metric-value">{{ total_gta|stringformat:'.3f' }} €</div></div></div>
+  <div class="col-6 col-xl-3"><div class="surface metric-card"><div class="metric-label">Сума ЕКО</div><div class="metric-value">{{ total_eko|stringformat:'.3f' }} €</div></div></div>
   <div class="col-6 col-xl-3"><div class="surface metric-card"><div class="metric-label">Печалба</div><div class="metric-value {% if total_profit < 0 %}text-danger{% else %}text-success{% endif %}">{{ total_profit|stringformat:'.2f' }} €</div></div></div>
 </div>
-<section class="surface">
+<section class="surface company-transactions-surface">
   <div class="table-responsive">
     <table class="table table-hover company-transactions-table">
       <thead><tr><th class="transaction-index">№</th><th>Дата</th><th>Карта / МПС</th><th>Продукт</th><th class="number">Литри</th><th class="currency">ЕКО цена</th><th class="currency">GTA цена</th><th class="currency">Сума GTA</th><th class="currency">Печалба</th></tr></thead>
       <tbody>{% for t in transactions %}<tr>
         <td class="transaction-index">{{ forloop.counter }}</td><td>{{ t.date|date:'d.m.Y' }}</td><td><strong>{{ t.card }}</strong><div class="small text-muted">{{ t.vehicle }}</div></td><td>{{ t.material }}{% if not t.has_price %}<div><span class="status-pill warning">Без ценова листа</span></div>{% endif %}</td>
-        <td class="number">{{ t.qty|stringformat:'.2f' }}</td><td class="currency">{{ t.eko_price|stringformat:'.3f' }} €</td><td class="currency fw-bold text-primary">{{ t.gta_price|stringformat:'.3f' }} €</td><td class="currency fw-bold">{{ t.gta_total|stringformat:'.2f' }} €</td><td class="currency {% if t.profit < 0 %}text-danger{% else %}text-success{% endif %}">{{ t.profit|stringformat:'.2f' }} €</td>
+        <td class="number">{{ t.qty|stringformat:'.2f' }}</td><td class="currency">{{ t.eko_price|stringformat:'.3f' }} €</td><td class="currency fw-bold text-primary">{{ t.gta_price|stringformat:'.3f' }} €</td><td class="currency fw-bold">{{ t.gta_total|stringformat:'.3f' }} €</td><td class="currency {% if t.profit < 0 %}text-danger{% else %}text-success{% endif %}">{{ t.profit|stringformat:'.2f' }} €</td>
       </tr>{% empty %}<tr><td colspan="9"><div class="empty-state">Няма транзакции за избрания период.</div></td></tr>{% endfor %}</tbody>
       {% if transactions %}<tfoot><tr class="fw-bold"><td colspan="4" class="text-end">ОБЩО</td><td class="number">{{ total_qty|stringformat:'.2f' }}</td><td></td><td></td><td class="currency">{{ total_gta|stringformat:'.2f' }} €</td><td class="currency">{{ total_profit|stringformat:'.2f' }} €</td></tr></tfoot>{% endif %}
     </table>
