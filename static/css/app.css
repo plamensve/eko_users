@@ -1572,3 +1572,175 @@ body{padding-bottom:0!important}
     padding-top:14px!important;
   }
 }
+
+
+/* =========================================================
+   Premium top navigation refinement
+   ========================================================= */
+:root{
+  --app-header-height:62px;
+  --nav-top:#122635;
+  --nav-mid:#17384b;
+  --nav-end:#1c465b;
+  --nav-line:#2f5b70;
+  --nav-accent:#2aa7c8;
+  --nav-text:#edf5f8;
+  --nav-muted:#9fb7c4;
+}
+
+.app-topbar{
+  position:fixed!important;
+  isolation:isolate;
+  height:var(--app-header-height)!important;
+  padding:0 20px!important;
+  background:
+    linear-gradient(100deg,var(--nav-top) 0%,var(--nav-mid) 56%,var(--nav-end) 100%)!important;
+  border-bottom:1px solid var(--nav-line)!important;
+  box-shadow:0 3px 12px rgba(5,18,27,.22)!important;
+}
+.app-topbar::after{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  left:0;
+  right:0;
+  bottom:-1px;
+  height:2px;
+  background:linear-gradient(90deg,transparent 0%,rgba(42,167,200,.78) 22%,rgba(42,167,200,.3) 72%,transparent 100%);
+  pointer-events:none;
+}
+.app-topbar-left{gap:14px!important}
+.app-topbar-brand{
+  gap:10px!important;
+  min-height:44px;
+  padding-right:15px;
+  border-right:1px solid rgba(255,255,255,.11);
+}
+.app-topbar .brand-mark{
+  width:38px!important;
+  height:38px!important;
+  flex-basis:38px!important;
+  padding:3px!important;
+  border-radius:8px!important;
+  background:#f8fbfc!important;
+  border:1px solid rgba(255,255,255,.24)!important;
+  box-shadow:0 2px 7px rgba(3,15,23,.16)!important;
+}
+.app-brand-copy strong{
+  color:var(--nav-text)!important;
+  font-size:.91rem!important;
+  letter-spacing:-.01em!important;
+}
+.app-brand-copy small{
+  margin-top:4px!important;
+  color:var(--nav-muted)!important;
+  font-size:.57rem!important;
+  font-weight:750!important;
+  letter-spacing:.12em!important;
+}
+
+.app-topbar-context{
+  gap:8px!important;
+  padding:0!important;
+  border-left:0!important;
+  color:#d9e7ed!important;
+  font-size:.75rem!important;
+  font-weight:650!important;
+}
+.app-topbar-context .bi-chevron-right{
+  color:#6f96a9!important;
+  font-size:.6rem!important;
+}
+.app-topbar-context>span:last-child{
+  color:#e4eef2!important;
+}
+.app-context-badge{
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:6px!important;
+  min-height:28px;
+  padding:4px 9px!important;
+  border-radius:6px!important;
+  color:#dcf0ea!important;
+  background:rgba(16,106,95,.34)!important;
+  border:1px solid rgba(92,178,164,.32)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.035)!important;
+}
+.app-context-badge img{
+  width:17px!important;
+  height:17px!important;
+}
+
+.app-topbar-actions{gap:8px!important}
+.app-topbar-icon,
+.app-sidebar-toggle{
+  width:36px!important;
+  height:36px!important;
+  border-radius:7px!important;
+  color:#d7e7ed!important;
+  background:rgba(255,255,255,.045)!important;
+  border:1px solid rgba(255,255,255,.13)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.025)!important;
+}
+.app-topbar-icon:hover,
+.app-sidebar-toggle:hover{
+  color:#fff!important;
+  background:rgba(255,255,255,.10)!important;
+  border-color:rgba(255,255,255,.24)!important;
+}
+
+.app-user-menu{
+  min-height:40px!important;
+  gap:8px!important;
+  padding:4px 8px 4px 5px!important;
+  border-radius:8px!important;
+  color:var(--nav-text)!important;
+  background:rgba(255,255,255,.035)!important;
+  border:1px solid rgba(255,255,255,.08)!important;
+}
+.app-user-menu:hover,
+.app-user-menu[aria-expanded=true]{
+  color:#fff!important;
+  background:rgba(255,255,255,.085)!important;
+  border-color:rgba(255,255,255,.17)!important;
+}
+.app-user-avatar{
+  width:31px!important;
+  height:31px!important;
+  border-radius:6px!important;
+  color:#d8e9f0!important;
+  background:rgba(78,143,169,.22)!important;
+  border:1px solid rgba(133,187,207,.16)!important;
+}
+.app-user-copy strong{
+  color:#fff!important;
+  font-size:.74rem!important;
+  font-weight:700!important;
+}
+.app-user-copy small{
+  margin-top:3px!important;
+  color:#9db5c2!important;
+  font-size:.57rem!important;
+}
+.app-user-menu::after{color:#8faab8!important}
+
+/* A lighter sidebar reinforces hierarchy between global and local navigation. */
+.app-sidebar,
+.app-mode-tasks .tasks-sidebar{
+  background:linear-gradient(180deg,#1c4054 0%,#18394a 100%)!important;
+  border-right-color:#376174!important;
+}
+.app-sidebar-nav a.active,
+.app-mode-tasks .tasks-sidebar-nav a.active{
+  background:#2a566d!important;
+  border-color:#3c6a7f!important;
+  box-shadow:inset 3px 0 #38b2d2!important;
+}
+
+@media(max-width:767.98px){
+  .app-topbar{padding:0 12px!important}
+  .app-topbar-brand{
+    padding-right:10px;
+    border-right:0;
+  }
+}
