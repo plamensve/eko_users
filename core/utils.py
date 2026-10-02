@@ -24,7 +24,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from .models import Card, Company, Price, Transaction
-from .services import ZERO, amount3, as_decimal, calculate_pricing, profit6, quantity6
+from .services import ZERO, amount3, calculate_pricing, profit6, quantity6, round3
 
 
 TWICE_MONTHLY_COMPANIES = {
@@ -145,7 +145,7 @@ def get_company_report_data(company, period="billing"):
             "vehicle": item.card.vehicle if item.card else "", "material": item.material, "qty": qty,
             "qty_type": item.bill_qty2 or "", "eko_base_price": calc.eko_base_price,
             "gta_price": calc.gta_price, "discount": calc.discount, "margin": calc.margin,
-            "profit": calc.profit, "gta_total": calc.gta_total, "eko_price": as_decimal(item.price),
+            "profit": calc.profit, "gta_total": calc.gta_total, "eko_price": round3(item.price),
             "eko_total": calc.eko_total, "auth_time": item.auth_time, "km_stand": item.km_stand,
             "billing_doc": item.billing_document or "", "has_price": price_record is not None,
         })
@@ -344,13 +344,13 @@ def import_prices(file_path):
                "МАРЖ": "margin", "Margin": "margin", "КРАЙНА_ЦЕНА": "final_price", "Final Price": "final_price",
                "Final_Price": "final_price", "ОТСТЪПКА": "discount", "Discount": "discount"}
     frame.rename(columns={column: mapping[column] for column in frame.columns if column in mapping}, inplace=True)
-    _require_columns(frame, ["date", "company", "eik", "product", "final_price"], "цени")
+    _require_columns(frame, ["date", "company", "eik", "product", "eko_price", "final_price"], "цени")
     created = updated = skipped = 0
     with db_transaction.atomic():
         for _, row in frame.iterrows():
             parsed = pd.to_datetime(row["date"], dayfirst=True, errors="coerce")
             name, eik, product = normalize_text(row["company"]), _clean_identifier(row["eik"]), normalize_text(row["product"])
-            if pd.isna(parsed) or not name or not product or pd.isna(row["final_price"]):
+            if pd.isna(parsed) or not name or not product or pd.isna(row["eko_price"]) or pd.isna(row["final_price"]):
                 skipped += 1
                 continue
             companies = list(Company.objects.filter(eik=eik)) if eik else []
