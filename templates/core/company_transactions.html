@@ -26,7 +26,7 @@
         <td class="transaction-index">{{ forloop.counter }}</td><td>{{ t.date|date:'d.m.Y' }}</td><td><strong>{{ t.card }}</strong><div class="small text-muted">{{ t.vehicle }}</div></td><td>{{ t.material }}{% if not t.has_price %}<div><span class="status-pill warning">Без ценова листа</span></div>{% endif %}</td>
         <td class="number">{{ t.qty|stringformat:'.2f' }}</td><td class="currency">{{ t.eko_price|stringformat:'.3f' }} €</td><td class="currency fw-bold text-primary">{{ t.gta_price|stringformat:'.3f' }} €</td><td class="currency fw-bold">{{ t.gta_total|stringformat:'.3f' }} €</td><td class="currency {% if t.profit < 0 %}text-danger{% else %}text-success{% endif %}">{{ t.profit|stringformat:'.2f' }} €</td>
       </tr>{% empty %}<tr><td colspan="9"><div class="empty-state">Няма транзакции за избрания период.</div></td></tr>{% endfor %}</tbody>
-      {% if transactions %}<tfoot><tr class="fw-bold"><td colspan="4" class="text-end">ОБЩО</td><td class="number">{{ total_qty|stringformat:'.2f' }}</td><td></td><td></td><td class="currency">{{ total_gta|stringformat:'.2f' }} €</td><td class="currency">{{ total_profit|stringformat:'.2f' }} €</td></tr></tfoot>{% endif %}
+      {% if transactions %}<tfoot><tr class="fw-bold"><td colspan="4" class="text-end">ОБЩО</td><td class="number">{{ total_qty|stringformat:'.2f' }}</td><td></td><td></td><td class="currency">{{ total_gta|stringformat:'.3f' }} €</td><td class="currency">{{ total_profit|stringformat:'.2f' }} €</td></tr></tfoot>{% endif %}
     </table>
   </div>
 </section>
