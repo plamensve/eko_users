@@ -72,6 +72,35 @@ def normalize_product_key(value):
     }))
 
 
+FUEL_PRODUCT_ICONS = {
+    "lpg": "bi-fire",
+    "premium-diesel": "bi-lightning-charge-fill",
+    "diesel": "bi-truck-front-fill",
+    "premium-petrol": "bi-stars",
+    "petrol": "bi-fuel-pump-fill",
+    "other": "bi-droplet-fill",
+}
+
+
+def fuel_product_kind(value):
+    """Return the shared visual category for an EKO product name."""
+    normalized = normalize_product_key(value)
+    if "LPG" in normalized or "GAS" in normalized:
+        return "lpg"
+    if "DIESEL" in normalized:
+        return "premium-diesel" if "DOUBLE" in normalized else "diesel"
+    if "100" in normalized:
+        return "premium-petrol"
+    if "95" in normalized:
+        return "petrol"
+    return "other"
+
+
+def fuel_product_icon(value):
+    """Return the Bootstrap icon class paired with the shared product style."""
+    return FUEL_PRODUCT_ICONS[fuel_product_kind(value)]
+
+
 @dataclass(frozen=True)
 class PricingResult:
     gta_price: Decimal
