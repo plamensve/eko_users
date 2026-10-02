@@ -923,3 +923,478 @@ h1,h2,h3,h4,h5,h6{color:#1c3447}
     padding:20px 15px 40px!important;
   }
 }
+
+
+/* =========================================================
+   AWS-inspired console system — final platform layer
+   This block intentionally wins over legacy layout rules.
+   ========================================================= */
+
+:root{
+  --app-header-height:60px;
+  --app-footer-height:0px;
+  --app-sidebar-width:252px;
+  --aws-topbar:#0f1f2a;
+  --aws-topbar-2:#132a38;
+  --aws-sidebar:#19384a;
+  --aws-sidebar-deep:#153242;
+  --aws-sidebar-border:#31566b;
+  --aws-sidebar-hover:#24495e;
+  --aws-sidebar-active:#2b5268;
+  --aws-accent:#ffb000;
+  --aws-link:#0972d3;
+  --aws-canvas:#f2f3f3;
+  --aws-panel:#ffffff;
+  --aws-panel-soft:#f8f9fa;
+  --aws-line:#d5dbdb;
+  --aws-line-strong:#aab7b8;
+  --aws-text:#16191f;
+  --aws-text-2:#414d5c;
+  --aws-muted:#687078;
+  --aws-focus:#0972d3;
+  --aws-shadow:0 1px 2px rgba(0,0,0,.08);
+}
+
+html,body{background:var(--aws-canvas)!important}
+body{
+  padding-top:var(--app-header-height)!important;
+  padding-bottom:0!important;
+  color:var(--aws-text)!important;
+  font-size:14px;
+}
+
+/* Top command bar: deliberately darker than sidebar. */
+.app-topbar{
+  height:var(--app-header-height)!important;
+  padding:0 18px!important;
+  background:linear-gradient(100deg,var(--aws-topbar),var(--aws-topbar-2))!important;
+  border-bottom:1px solid #28404d!important;
+  box-shadow:0 2px 8px rgba(0,0,0,.18)!important;
+}
+.app-topbar-brand{gap:9px!important}
+.app-topbar .brand-mark{
+  width:36px!important;height:36px!important;flex-basis:36px!important;
+  border-radius:7px!important;
+  background:#fff!important;
+  border:1px solid rgba(255,255,255,.18)!important;
+  box-shadow:none!important;
+}
+.app-brand-copy strong{font-size:.9rem!important;color:#fff!important}
+.app-brand-copy small{font-size:.58rem!important;color:#9eb4c1!important}
+.app-topbar-context{
+  padding-left:14px!important;
+  border-left:1px solid rgba(255,255,255,.14)!important;
+  color:#c7d5dd!important;
+  font-size:.76rem!important;
+}
+.app-topbar-context .bi-chevron-right{color:#708c9c!important}
+.app-context-badge{
+  padding:3px 7px!important;
+  border-radius:4px!important;
+  background:#203d4a!important;
+  border-color:#3b5b68!important;
+  color:#d8ece5!important;
+}
+.app-topbar-icon,
+.app-sidebar-toggle{
+  width:34px!important;height:34px!important;
+  border-radius:5px!important;
+  color:#d7e4ea!important;
+  background:#183442!important;
+  border-color:#365260!important;
+  box-shadow:none!important;
+}
+.app-topbar-icon:hover,
+.app-sidebar-toggle:hover{background:#244858!important;border-color:#4b6876!important;color:#fff!important}
+.app-user-menu{
+  min-height:36px!important;
+  padding:3px 7px 3px 4px!important;
+  border-radius:5px!important;
+}
+.app-user-menu:hover,.app-user-menu[aria-expanded=true]{background:#193744!important}
+.app-user-avatar{
+  width:29px!important;height:29px!important;border-radius:5px!important;
+  color:#d9e7ee!important;background:#244351!important;border-color:#365563!important;
+}
+.app-user-copy strong{font-size:.74rem!important}
+.app-user-copy small{font-size:.58rem!important;color:#a3b7c2!important}
+
+/* Shared sidebar: visibly lighter than topbar. */
+.app-sidebar,
+.app-mode-tasks .tasks-sidebar{
+  background:linear-gradient(180deg,var(--aws-sidebar),var(--aws-sidebar-deep))!important;
+  color:#dbe6ec!important;
+  border-right:1px solid var(--aws-sidebar-border)!important;
+  box-shadow:2px 0 7px rgba(0,0,0,.08)!important;
+}
+.app-sidebar{
+  top:var(--app-header-height)!important;
+  width:var(--app-sidebar-width)!important;
+}
+.app-sidebar-head,
+.app-mode-tasks .tasks-sidebar-brand{
+  background:rgba(255,255,255,.018)!important;
+  border-bottom:1px solid rgba(255,255,255,.085)!important;
+}
+.app-sidebar-kicker,
+.app-sidebar-label,
+.app-mode-tasks .tasks-sidebar-label{
+  color:#93adbc!important;
+}
+.app-sidebar-head>strong,
+.app-sidebar-module>div>strong,
+.app-mode-tasks .tasks-sidebar-brand strong{color:#fff!important}
+.app-sidebar-head>small,
+.app-sidebar-module>div>small,
+.app-mode-tasks .tasks-sidebar-brand small{color:#a9bdc8!important}
+
+.app-sidebar-nav a,
+.app-mode-tasks .tasks-sidebar-nav a{
+  min-height:38px!important;
+  padding:8px 10px!important;
+  border:1px solid transparent!important;
+  border-radius:4px!important;
+  color:#d0dde4!important;
+  background:transparent!important;
+  font-size:.77rem!important;
+  font-weight:600!important;
+  box-shadow:none!important;
+}
+.app-sidebar-nav a i,
+.app-mode-tasks .tasks-sidebar-nav a i:first-child{
+  color:#9bb5c4!important;
+}
+.app-sidebar-nav a:hover,
+.app-mode-tasks .tasks-sidebar-nav a:hover{
+  color:#fff!important;
+  background:var(--aws-sidebar-hover)!important;
+  border-color:#31576b!important;
+}
+.app-sidebar-nav a.active,
+.app-mode-tasks .tasks-sidebar-nav a.active{
+  color:#fff!important;
+  background:var(--aws-sidebar-active)!important;
+  border-color:#3c6276!important;
+  box-shadow:inset 3px 0 var(--aws-accent)!important;
+}
+.app-sidebar-nav a.active i,
+.app-mode-tasks .tasks-sidebar-nav a.active i:first-child{
+  color:#dcecf4!important;
+}
+.app-sidebar-foot,
+.app-mode-tasks .tasks-sidebar-foot{
+  background:rgba(0,0,0,.055)!important;
+  border-top:1px solid rgba(255,255,255,.08)!important;
+}
+.app-system-dot{background:#2eb67d!important}
+
+/* Main work area */
+.page-shell{
+  min-height:calc(100vh - var(--app-header-height))!important;
+  padding:24px clamp(20px,2.4vw,38px) 38px!important;
+  background:var(--aws-canvas)!important;
+}
+.has-app-sidebar .page-shell{margin-left:var(--app-sidebar-width)!important}
+
+/* Critical Projects fix: old display:block/fixed sidebar rules are neutralized here. */
+.app-mode-tasks .page-shell.tasks-page-shell{
+  display:block!important;
+  width:100%!important;
+  max-width:none!important;
+  min-height:calc(100vh - var(--app-header-height))!important;
+  margin:0!important;
+  padding:0!important;
+  background:var(--aws-canvas)!important;
+}
+.app-mode-tasks .tasks-workspace{
+  display:grid!important;
+  grid-template-columns:var(--app-sidebar-width) minmax(0,1fr)!important;
+  align-items:stretch!important;
+  gap:0!important;
+  width:100%!important;
+  max-width:none!important;
+  min-height:calc(100vh - var(--app-header-height))!important;
+  margin:0!important;
+  padding:0!important;
+}
+.app-mode-tasks .tasks-sidebar{
+  position:sticky!important;
+  top:var(--app-header-height)!important;
+  left:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  width:auto!important;
+  min-width:0!important;
+  max-width:none!important;
+  height:calc(100vh - var(--app-header-height))!important;
+  min-height:calc(100vh - var(--app-header-height))!important;
+  max-height:calc(100vh - var(--app-header-height))!important;
+  margin:0!important;
+  padding:0!important;
+  overflow-y:auto!important;
+  border:0!important;
+  border-right:1px solid var(--aws-sidebar-border)!important;
+  border-radius:0!important;
+  z-index:10!important;
+}
+.app-mode-tasks .tasks-main{
+  display:block!important;
+  min-width:0!important;
+  width:auto!important;
+  margin:0!important;
+  padding:24px clamp(20px,2.4vw,38px) 38px!important;
+  background:var(--aws-canvas)!important;
+}
+.app-mode-tasks .tasks-main>.tasks-shell{
+  display:block!important;
+  width:100%!important;
+  max-width:1600px!important;
+  margin:0!important;
+  padding:0!important;
+}
+.app-mode-tasks .tasks-sidebar-brand{
+  padding:18px 17px 16px!important;
+}
+.app-mode-tasks .tasks-sidebar-nav{padding:4px 10px 9px!important}
+.app-mode-tasks .tasks-sidebar-section{padding:0 10px!important}
+.app-mode-tasks .tasks-module-navigation{
+  margin-bottom:8px!important;
+}
+.app-mode-tasks .tasks-module-navigation a:first-child{
+  color:#fff!important;
+  background:rgba(255,176,0,.08)!important;
+  border-color:rgba(255,176,0,.2)!important;
+}
+.app-mode-tasks .tasks-module-navigation a:first-child i{color:#ffc34d!important}
+.app-mode-tasks .tasks-sidebar-foot{margin-top:auto!important}
+
+/* AWS-like content components */
+.surface,
+.card,
+.company-table-card,
+.analytics-card,
+.tasks-panel,
+.task-project-card,
+.calendar-main,
+.calendar-agenda{
+  background:var(--aws-panel)!important;
+  border:1px solid var(--aws-line)!important;
+  border-radius:7px!important;
+  box-shadow:var(--aws-shadow)!important;
+}
+.surface-header,
+.card-header{
+  background:var(--aws-panel-soft)!important;
+  border-bottom:1px solid var(--aws-line)!important;
+  border-radius:7px 7px 0 0!important;
+}
+.page-title,
+.tasks-page-shell .tasks-heading h1{
+  color:#16191f!important;
+  font-weight:700!important;
+}
+.page-subtitle,
+.tasks-page-shell .tasks-heading p{color:#5f6b7a!important}
+.eyebrow,
+.tasks-page-shell .tasks-eyebrow{
+  color:#5f6b7a!important;
+  letter-spacing:.08em!important;
+}
+.metric-card{border-radius:7px!important}
+.metric-label{color:#5f6b7a!important}
+.metric-value{color:#16191f!important}
+.metric-meta{color:#687078!important}
+
+/* Controls */
+.btn{
+  border-radius:4px!important;
+  min-height:34px!important;
+  padding:.42rem .72rem!important;
+  font-size:.76rem!important;
+  box-shadow:none!important;
+}
+.btn-primary{
+  color:#fff!important;
+  background:#0972d3!important;
+  border-color:#0972d3!important;
+}
+.btn-primary:hover{background:#075fae!important;border-color:#075fae!important}
+.btn-success{
+  color:#fff!important;
+  background:#0f8a74!important;
+  border-color:#0f8a74!important;
+}
+.btn-success:hover{background:#0b715f!important;border-color:#0b715f!important}
+.btn-light,
+.btn-outline-secondary{
+  background:#fff!important;
+  color:#414d5c!important;
+  border-color:#aab7b8!important;
+}
+.btn-light:hover,
+.btn-outline-secondary:hover{
+  background:#f1f3f3!important;
+  color:#16191f!important;
+  border-color:#879596!important;
+}
+.form-control,
+.form-select,
+.input-group-text{
+  min-height:36px!important;
+  border-radius:4px!important;
+  border-color:#aab7b8!important;
+  background:#fff!important;
+  color:#16191f!important;
+  font-size:.77rem!important;
+}
+.form-control:focus,
+.form-select:focus{
+  border-color:var(--aws-focus)!important;
+  box-shadow:0 0 0 2px rgba(9,114,211,.18)!important;
+}
+.dropdown-menu{
+  border:1px solid var(--aws-line)!important;
+  border-radius:6px!important;
+  box-shadow:0 6px 18px rgba(0,0,0,.14)!important;
+}
+.dropdown-item{font-size:.78rem!important}
+.dropdown-item:hover{background:#f1f3f3!important}
+.nav-pills .nav-link{
+  border-radius:4px!important;
+  font-size:.76rem!important;
+}
+.nav-pills .nav-link.active{
+  background:#0972d3!important;
+  color:#fff!important;
+}
+.pagination .page-link{
+  color:#0972d3!important;
+  border-color:#d5dbdb!important;
+}
+.pagination .page-item.active .page-link{
+  color:#fff!important;
+  background:#0972d3!important;
+  border-color:#0972d3!important;
+}
+
+/* Tables */
+.table{
+  font-size:.77rem!important;
+  color:#16191f!important;
+}
+.table thead th{
+  background:#eaeded!important;
+  color:#414d5c!important;
+  border-color:#c6caca!important;
+  font-size:.63rem!important;
+  font-weight:700!important;
+  letter-spacing:.04em!important;
+}
+.table td{
+  color:#333c45!important;
+  border-color:#eaeded!important;
+}
+.table-hover tbody tr:hover{background:#f7fafa!important}
+.table tfoot td{
+  background:#f7f8f8!important;
+  border-top:1px solid #aab7b8!important;
+}
+
+/* Status and product tokens */
+.status-pill{
+  border-radius:999px!important;
+  font-size:.65rem!important;
+  border:1px solid #b7d9ce!important;
+}
+.status-pill.warning{border-color:#ead79a!important}
+.fuel-pill{
+  border-radius:4px!important;
+  font-size:.66rem!important;
+}
+
+/* Projects / Kanban */
+.tasks-section-title{
+  color:#414d5c!important;
+  border-bottom:1px solid var(--aws-line);
+  padding-bottom:9px;
+}
+.task-project-card{
+  padding:18px!important;
+  color:#16191f!important;
+  transition:border-color .12s ease,box-shadow .12s ease!important;
+}
+.task-project-card:hover{
+  transform:none!important;
+  border-color:#879596!important;
+  box-shadow:0 2px 5px rgba(0,0,0,.1)!important;
+}
+.task-project-icon{
+  border-radius:5px!important;
+  background:#eef5fa!important;
+  color:#0972d3!important;
+}
+.kanban-column{
+  background:#e9ebed!important;
+  border:1px solid #cfd4d5!important;
+  border-radius:7px!important;
+  padding:11px!important;
+}
+.kanban-column h2{color:#333c45!important}
+.kanban-card{
+  border:1px solid #cfd4d5!important;
+  border-radius:6px!important;
+  box-shadow:0 1px 2px rgba(0,0,0,.05)!important;
+}
+.kanban-card:hover{border-color:#879596!important}
+.kanban-card-title{color:#16191f!important}
+.tasks-stat{
+  border:1px solid var(--aws-line)!important;
+  border-radius:6px!important;
+  box-shadow:none!important;
+}
+.tasks-stat strong{color:#16191f!important}
+
+/* Notifications */
+.app-notice{
+  border-radius:6px!important;
+  border-color:var(--aws-line)!important;
+  box-shadow:0 6px 18px rgba(0,0,0,.14)!important;
+}
+
+/* Footer is intentionally removed from the platform. */
+.app-footer{display:none!important}
+
+/* Make old fixed-footer offsets harmless even if cached legacy rules remain. */
+body{padding-bottom:0!important}
+.tasks-page-shell{min-height:calc(100vh - var(--app-header-height))!important}
+
+/* Responsive */
+@media(max-width:991.98px){
+  .has-app-sidebar .page-shell{margin-left:0!important}
+  .app-sidebar{
+    transform:translateX(-102%);
+    box-shadow:10px 0 30px rgba(0,0,0,.25)!important;
+  }
+  body.sidebar-open .app-sidebar{transform:translateX(0)}
+  .page-shell{padding:18px 14px 32px!important}
+}
+@media(max-width:800px){
+  .app-mode-tasks .tasks-workspace{
+    display:block!important;
+    min-height:0!important;
+  }
+  .app-mode-tasks .tasks-sidebar{
+    position:relative!important;
+    top:auto!important;
+    width:100%!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    border-right:0!important;
+    border-bottom:1px solid var(--aws-sidebar-border)!important;
+  }
+  .app-mode-tasks .tasks-main{
+    margin:0!important;
+    padding:18px 14px 32px!important;
+  }
+}
