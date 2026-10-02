@@ -15,6 +15,11 @@
     <div class="tasks-sidebar-section"><span class="tasks-sidebar-label">ВАШИТЕ ПРОЕКТИ</span><a href="{% url 'tasks:project_new' %}" title="Нов проект" aria-label="Нов проект"><i class="bi bi-plus-circle"></i></a></div>
     <nav class="tasks-sidebar-nav tasks-project-links">{% for item in sidebar_projects %}<a href="{% url 'tasks:board' item.pk %}" class="{% if project.pk == item.pk %}active{% endif %}"><i class="bi bi-folder2-open"></i> <span class="text-truncate">{{ item.name }}</span></a>{% empty %}<small class="tasks-sidebar-hint">Създайте първия си проект.</small>{% endfor %}</nav>
     {% if project %}<div class="tasks-sidebar-section"><span class="tasks-sidebar-label">ТЕКУЩ ПРОЕКТ</span></div><nav class="tasks-sidebar-nav"><a href="{% url 'tasks:board' project.pk %}" class="{% if request.resolver_match.url_name == 'board' %}active{% endif %}"><i class="bi bi-kanban"></i> Канбан табло</a>{% if user.pk == project.owner_id %}<a href="{% url 'tasks:settings' project.pk %}" class="{% if request.resolver_match.url_name == 'settings' %}active{% endif %}"><i class="bi bi-people"></i> Екип и настройки</a>{% endif %}{% if not project.archived %}<a href="{% url 'tasks:task_new' project.pk %}"><i class="bi bi-plus-square"></i> Добави задача</a>{% endif %}</nav>{% endif %}
+    <div class="tasks-sidebar-section"><span class="tasks-sidebar-label">НАВИГАЦИЯ</span></div>
+    <nav class="tasks-sidebar-nav tasks-module-navigation">
+      <a href="{% url 'home' %}"><i class="bi bi-grid"></i><span>Всички модули</span></a>
+      <a href="{% url 'fuel_card_chains' %}"><i class="bi bi-credit-card-2-front"></i><span>Картови зареждания</span></a>
+    </nav>
     <div class="tasks-sidebar-foot"><i class="bi bi-stars"></i><span>Организирайте работата.<br><strong>Движете проектите напред.</strong></span></div>
   </aside>
   <div class="tasks-main">{% block tasks_content %}{% endblock %}</div>
