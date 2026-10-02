@@ -1765,3 +1765,74 @@ body{padding-bottom:0!important}
   object-fit:contain!important;
   background:#fff!important;
 }
+
+
+/* =========================================================
+   Readability refinement + profit emphasis
+   ========================================================= */
+
+/* Slightly larger typography across the platform. */
+html{font-size:16.5px!important}
+body{font-size:15px!important}
+.table{font-size:.80rem!important}
+.table thead th{font-size:.66rem!important}
+.btn{font-size:.79rem!important}
+.form-control,
+.form-select,
+.input-group-text{font-size:.80rem!important}
+.app-sidebar-nav a,
+.app-mode-tasks .tasks-sidebar-nav a{font-size:.80rem!important}
+.app-topbar-context{font-size:.78rem!important}
+.app-user-copy strong{font-size:.77rem!important}
+.app-user-copy small{font-size:.60rem!important}
+.app-brand-copy strong{font-size:.94rem!important}
+.app-brand-copy small{font-size:.60rem!important}
+.page-subtitle{font-size:.85rem!important}
+.metric-label{font-size:.72rem!important}
+.metric-meta{font-size:.74rem!important}
+.status-pill{font-size:.68rem!important}
+.fuel-pill{font-size:.69rem!important}
+.module-breadcrumb{font-size:.84rem!important}
+
+/* Company report profit column */
+.company-transactions-table th.profit-column{
+  background:#e6f3ed!important;
+  color:#176b50!important;
+  border-left:2px solid #9ccfbc!important;
+  border-bottom-color:#b9d8cc!important;
+}
+.profit-column-heading{
+  display:inline-flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:6px;
+  width:100%;
+  font-weight:800;
+}
+.company-transactions-table tbody td.profit-column{
+  background:#f5fbf8!important;
+  border-left:2px solid #c8e3d7!important;
+  font-weight:800!important;
+  font-size:.84rem!important;
+}
+.company-transactions-table tbody tr:hover td.profit-column{
+  background:#edf8f3!important;
+}
+.company-transactions-table td.profit-positive{
+  color:#137257!important;
+}
+.company-transactions-table td.profit-negative{
+  color:#b42318!important;
+  background:#fff7f6!important;
+  border-left-color:#efb5af!important;
+}
+.company-transactions-table tbody tr:hover td.profit-negative{
+  background:#fff0ee!important;
+}
+.company-transactions-table tfoot td.profit-column{
+  background:#e8f5ef!important;
+  border-left:2px solid #8dc7b1!important;
+  border-top:2px solid #8dc7b1!important;
+  font-size:.86rem!important;
+  font-weight:850!important;
+}
