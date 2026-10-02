@@ -208,3 +208,23 @@ body{padding-bottom:var(--app-footer-height)}.app-footer{position:fixed;left:0;r
 
 /* Blue actions, unobstructed notices, and priority level indicators. */
 .tasks-page-shell .btn-success{background:linear-gradient(180deg,#347fae,#205d89);border-color:#215f8b;box-shadow:0 3px 7px #154c7425,inset 0 1px 0 #ffffff24}.tasks-page-shell .btn-success:hover{background:linear-gradient(180deg,#2c73a1,#174e77);border-color:#174e77;box-shadow:0 5px 12px #154c7430}.tasks-page-shell .btn-outline-success{color:#24648e;border-color:#bed3e2;background:#f8fbfe}.tasks-page-shell .btn-outline-success:hover{color:#174d72;background:#e7f1f9;border-color:#8cb7d2}.tasks-page-shell .btn:focus-visible{outline:3px solid #8ec9ec;outline-offset:3px}.app-notifications{position:fixed;top:calc(var(--app-header-height,66px) + 18px);right:24px;width:min(400px,calc(100vw - 32px));z-index:1080;display:grid;gap:10px;pointer-events:none;max-height:calc(100dvh - var(--app-header-height,66px) - var(--app-footer-height,88px) - 40px);overflow-y:auto}.app-notice{pointer-events:auto;display:flex;align-items:flex-start;gap:12px;padding:16px;background:#fff;border:1px solid #d5e3ed;border-left:4px solid #3e82ae;border-radius:13px;box-shadow:0 10px 30px #15384e25;color:#28495e}.app-notice-icon{display:grid;place-items:center;flex:0 0 32px;height:32px;border-radius:9px;background:#e8f3fb;color:#2e78a5;font-size:18px}.app-notice>div{flex:1;min-width:0}.app-notice strong{font-size:13px;font-weight:750;display:block;margin-bottom:3px}.app-notice p{margin:0;font-size:13px;line-height:1.5;overflow-wrap:anywhere}.app-notice-close{border:0;background:transparent;color:#6f899a;border-radius:6px;padding:4px;cursor:pointer}.app-notice-close:hover{background:#edf4f8;color:#244e68}.notice-error{border-left-color:#c25353}.notice-error .app-notice-icon{background:#fbeaea;color:#ba4848}.notice-warning{border-left-color:#c49536}.notice-warning .app-notice-icon{background:#fff5df;color:#a87a22}.task-priority-control{display:flex;align-items:center;gap:9px;margin-top:12px}.priority-tube{height:9px;flex:1;min-width:40px;border:1px solid #d5e1eb;border-radius:999px;background:#e8eef4;padding:1px;box-shadow:inset 0 1px 2px #193e5012}.priority-tube>span{height:100%;display:block;border-radius:999px;box-shadow:inset 0 1px 0 #ffffff60}.tube-low>span{width:25%;background:linear-gradient(90deg,#92aec5,#6f94b5)}.tube-normal>span{width:50%;background:linear-gradient(90deg,#67a6d6,#387eb7)}.tube-high>span{width:75%;background:linear-gradient(90deg,#f3c874,#d59a3a)}.tube-urgent>span{width:100%;background:linear-gradient(90deg,#ed9693,#ce575d)}.task-priority-control form{width:124px}.task-priority-control .task-select-trigger{min-height:30px;padding:5px 7px;font-size:.71rem;gap:5px}.task-priority-control select{width:100%;font-size:.75rem;border:1px solid #d2e1eb;border-radius:7px;padding:5px;background:#f5f9fc;color:#37627c}@media(min-width:801px){.tasks-page-shell~.app-notifications{max-width:calc(100vw - 304px)}}@media(max-width:800px){.app-notifications{right:16px;top:calc(var(--app-header-height,66px) + 12px)}}
+
+
+/* Company report transaction table */
+.company-transactions-surface { overflow:hidden; }
+.company-transactions-table { min-width:1050px; }
+.company-transactions-table > :not(caption) > * > * { padding:.85rem 1rem; }
+.company-transactions-table .transaction-index {
+  width:58px;
+  min-width:58px;
+  text-align:center!important;
+  color:#6f7f8e;
+  font-weight:700;
+  font-variant-numeric:tabular-nums;
+}
+.company-transactions-table tbody tr { height:58px; }
+.company-transactions-table tfoot td { border-top:2px solid var(--line); background:#f8fafc; }
+
+@media (max-width: 768px) {
+  .company-transactions-table > :not(caption) > * > * { padding:.7rem .75rem; }
+}
