@@ -473,12 +473,35 @@ def relink_data_view(request):
 
 @login_required
 def analytics(request):
+    # Keep the web Analytics KPIs on exactly the same product scope as the
+    # verified management Excel report.
+    from decimal import Decimal
+    from .analytics_export import PRODUCTS
+
+    configured_products = {
+        normalize_text(alias)
+        for product in PRODUCTS
+        for alias in product["aliases"]
+    }
+
+    def analytics_totals(rows):
+        included = [
+            row for row in rows
+            if normalize_text(row["material"]) in configured_products
+        ]
+        return (
+            included,
+            sum((row["qty"] for row in included), Decimal("0")),
+            sum((row["gta_total"] for row in included), Decimal("0")),
+            sum((row["profit"] for row in included), Decimal("0")),
+        )
+
     companies = Company.objects.all().order_by('name')
     analytics_data = []
 
-    grand_total_qty = 0
-    grand_total_profit = 0
-    grand_total_gta = 0
+    grand_total_qty = Decimal("0")
+    grand_total_profit = Decimal("0")
+    grand_total_gta = Decimal("0")
 
     report_type = request.GET.get('report', 'full')
 
@@ -486,10 +509,11 @@ def analytics(request):
         report_type = 'full'
 
     for company in companies:
-        data, t_qty, t_eko, t_gta, t_profit = get_company_report_data(
+        rows, *_ = get_company_report_data(
             company,
             period=report_type
         )
+        included_rows, t_qty, t_gta, t_profit = analytics_totals(rows)
 
         if t_qty > 0:
             analytics_data.append({
@@ -501,16 +525,17 @@ def analytics(request):
                 'is_unknown': False,
                 'total_qty': t_qty,
                 'total_gta': t_gta,
-                'total_profit': t_profit
+                'total_profit': t_profit,
+                'transaction_count': len(included_rows),
             })
 
             grand_total_qty += t_qty
             grand_total_profit += t_profit
             grand_total_gta += t_gta
 
-    unknown_rows, unknown_qty, _unknown_eko, unknown_gta, unknown_profit = get_unknown_report_data(
-        period=report_type
-    )
+    unknown_rows, *_ = get_unknown_report_data(period=report_type)
+    included_unknown, unknown_qty, unknown_gta, unknown_profit = analytics_totals(unknown_rows)
+
     if unknown_qty > 0:
         analytics_data.append({
             'company': None,
@@ -522,7 +547,7 @@ def analytics(request):
             'total_qty': unknown_qty,
             'total_gta': unknown_gta,
             'total_profit': unknown_profit,
-            'transaction_count': len(unknown_rows),
+            'transaction_count': len(included_unknown),
         })
         grand_total_qty += unknown_qty
         grand_total_profit += unknown_profit
