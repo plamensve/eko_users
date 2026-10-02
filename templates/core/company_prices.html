@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load fuel_tags %}
 
 {% block title %}История на цените · {{ company.name }} · GTA Manager{% endblock %}
 
@@ -32,7 +33,7 @@
                         {% for price in prices %}
                         <tr>
                             <td>{{ price.date|date:"d.m.Y" }}</td>
-                            <td>{{ price.product }}</td>
+                            <td>{% fuel_pill price.product %}</td>
                             <td class="text-right font-weight-bold">{{ price.final_price|stringformat:".4f" }} €</td>
                             <td class="text-right">{{ price.margin|stringformat:".4f" }} €</td>
                             <td class="text-right">{{ price.discount|stringformat:".4f" }} €</td>
