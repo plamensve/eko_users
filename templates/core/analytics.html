@@ -437,7 +437,12 @@
                                 <td>
 
                                     {% if item.is_unknown %}
-                                        <span class="company-link">Unknown</span>
+                                        <a
+                                            href="{% url 'unknown_transactions' %}?report={{ report_type }}"
+                                            class="company-link"
+                                        >
+                                            Unknown
+                                        </a>
                                         <span class="badge badge-secondary ml-2">Несвързани карти</span>
                                     {% else %}
                                         <a
