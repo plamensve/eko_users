@@ -1476,3 +1476,41 @@ body{padding-bottom:0!important}
   border-radius:10px!important;
   box-shadow:0 6px 18px rgba(0,0,0,.18)!important;
 }
+
+
+/* Global back navigation */
+.app-back-button{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  height:34px;
+  padding:0 10px;
+  margin-left:2px;
+  color:#d7e4ea;
+  background:#183442;
+  border:1px solid #365260;
+  border-radius:5px;
+  font-size:.73rem;
+  font-weight:650;
+  line-height:1;
+  white-space:nowrap;
+  transition:background .12s,border-color .12s,color .12s;
+}
+.app-back-button i{font-size:.9rem}
+.app-back-button:hover{
+  color:#fff;
+  background:#244858;
+  border-color:#4b6876;
+}
+.app-back-button:focus-visible{
+  outline:2px solid #7db7e8;
+  outline-offset:2px;
+}
+@media(max-width:767.98px){
+  .app-back-button{
+    width:34px;
+    padding:0;
+    justify-content:center;
+  }
+  .app-back-button span{display:none}
+}
