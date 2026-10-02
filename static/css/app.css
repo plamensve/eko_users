@@ -1398,3 +1398,81 @@ body{padding-bottom:0!important}
     padding:18px 14px 32px!important;
   }
 }
+
+
+/* AWS console hero exceptions: dark branded headers must not inherit white panel styling. */
+.surface.hero-panel,
+.surface.gta-home-hero{
+  color:#f5f9fb!important;
+  background:
+    radial-gradient(circle at 86% 12%,rgba(255,176,0,.10),transparent 30%),
+    linear-gradient(120deg,#16384b 0%,#1f536d 72%,#236f75 135%)!important;
+  border:1px solid #315f73!important;
+  box-shadow:0 3px 10px rgba(15,31,42,.16)!important;
+}
+.surface.hero-panel{
+  padding:30px 32px!important;
+}
+.surface.gta-home-hero{
+  padding:clamp(2rem,5vw,4rem)!important;
+}
+.surface.hero-panel h1,
+.surface.hero-panel h2,
+.surface.hero-panel h3,
+.surface.hero-panel h4,
+.surface.hero-panel h5,
+.surface.hero-panel h6,
+.surface.gta-home-hero h1,
+.surface.gta-home-hero h2,
+.surface.gta-home-hero h3,
+.surface.gta-home-hero h4,
+.surface.gta-home-hero h5,
+.surface.gta-home-hero h6{
+  color:#fff!important;
+}
+.surface.hero-panel .lead,
+.surface.gta-home-hero .lead{
+  color:#dbe7ed!important;
+}
+.surface.hero-panel .eyebrow,
+.surface.gta-home-hero .eyebrow{
+  color:#ffcc66!important;
+}
+.surface.hero-panel .eko-period-card{
+  color:#eef6fa!important;
+  background:rgba(10,31,43,.28)!important;
+  border:1px solid rgba(255,255,255,.12)!important;
+  border-radius:7px!important;
+}
+.surface.hero-panel .eko-period-card .small{
+  color:#bfd0da!important;
+  opacity:1!important;
+}
+.surface.hero-panel .eko-period-card .fw-bold{
+  color:#fff!important;
+}
+.surface.hero-panel .btn-warning{
+  color:#251a00!important;
+  background:#ffb000!important;
+  border-color:#ffb000!important;
+}
+.surface.hero-panel .btn-warning:hover{
+  background:#f0a500!important;
+  border-color:#f0a500!important;
+}
+.surface.hero-panel .btn-outline-light{
+  color:#fff!important;
+  background:transparent!important;
+  border-color:#b8c9d2!important;
+}
+.surface.hero-panel .btn-outline-light:hover{
+  color:#122734!important;
+  background:#f3f7f9!important;
+  border-color:#f3f7f9!important;
+}
+.surface.hero-panel .eko-hero-logo{
+  background:#fff!important;
+  border:1px solid rgba(255,255,255,.36)!important;
+  border-radius:10px!important;
+  box-shadow:0 6px 18px rgba(0,0,0,.18)!important;
+}
