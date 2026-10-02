@@ -130,6 +130,7 @@ class AccessTests(TestCase):
         self.assertNotContains(response, "Проекти и задачи")
         self.assertContains(response, 'class="app-sidebar"')
         self.assertContains(response, "EKO")
+        self.assertContains(response, 'id="appBackButton"')
 
     def test_gta_home_and_fuel_chain_selector(self):
         user = get_user_model().objects.create_user(username="manager", password="safe-test-password")
@@ -138,6 +139,7 @@ class AccessTests(TestCase):
         self.assertContains(home, "GTA Manager")
         self.assertContains(home, "Картови зареждания")
         self.assertNotContains(home, 'class="app-footer"')
+        self.assertNotContains(home, 'id="appBackButton"')
 
         chains = self.client.get(reverse("fuel_card_chains"))
         self.assertContains(chains, "ЕКО")
@@ -150,7 +152,7 @@ class AccessTests(TestCase):
         self.assertContains(chains, "img/logos/himoil-icon.png")
         self.assertContains(home, "img/logos/gta-original-diamond.svg")
         self.assertContains(chains, 'width="78" height="78"', count=4)
-        self.assertContains(chains, "app.css?v=20261003-enterprise-ui-5")
+        self.assertContains(chains, "app.css?v=20261003-enterprise-ui-6")
         self.assertContains(chains, f'href="{reverse("index")}"')
 
     def test_login_redirects_to_gta_home(self):
