@@ -15,6 +15,7 @@ urlpatterns = [
     path('<int:project_id>/attachments/<int:attachment_id>/', views.attachment_download, name='attachment_download'),
     path('<int:project_id>/attachments/<int:attachment_id>/delete/', views.attachment_delete, name='attachment_delete'),
     path('<int:project_id>/settings/', views.project_settings, name='settings'),
+    path('<int:project_id>/delete/', views.project_delete, name='project_delete'),
     path('<int:project_id>/members/', views.member_add, name='member_add'),
     path('<int:project_id>/members/<int:user_id>/remove/', views.member_remove, name='member_remove'),
     path('<int:project_id>/tasks/new/', views.task_new, name='task_new'),
