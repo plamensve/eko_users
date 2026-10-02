@@ -662,3 +662,264 @@ h1,h2,h3,h4,h5,h6{color:#1c3447}
 /* Preserve warning accents on dark hero sections. */
 .gta-home-hero .text-warning,
 .hero-panel .text-warning{color:#ffd45e!important}
+
+
+/* =========================================================
+   Enterprise navigation refinement
+   ========================================================= */
+
+/* Dark professional command bar */
+.app-topbar{
+  background:linear-gradient(105deg,#102635 0%,#16384c 58%,#1a4358 100%)!important;
+  border-bottom:1px solid #244b60!important;
+  box-shadow:0 5px 18px rgba(10,28,40,.16)!important;
+}
+.app-topbar-brand{color:#f5f9fb!important}
+.app-topbar-brand:hover{color:#fff!important}
+.app-topbar .brand-mark{
+  background:#f9fbfc!important;
+  border-color:rgba(255,255,255,.22)!important;
+  box-shadow:0 2px 8px rgba(0,0,0,.12)!important;
+}
+.app-brand-copy strong{color:#fff!important}
+.app-brand-copy small{color:#9fb8c8!important}
+.app-topbar-context{
+  border-left-color:rgba(255,255,255,.14)!important;
+  color:#cad9e2!important;
+}
+.app-topbar-context .bi-chevron-right{color:#6f8fa2!important}
+.app-context-badge{
+  color:#d7eee6!important;
+  background:rgba(54,139,113,.18)!important;
+  border-color:rgba(112,190,165,.25)!important;
+}
+.app-topbar-icon,
+.app-sidebar-toggle{
+  color:#d7e4ec!important;
+  background:rgba(255,255,255,.055)!important;
+  border-color:rgba(255,255,255,.14)!important;
+}
+.app-topbar-icon:hover,
+.app-sidebar-toggle:hover{
+  color:#fff!important;
+  background:rgba(255,255,255,.11)!important;
+  border-color:rgba(255,255,255,.24)!important;
+}
+.app-user-menu{
+  color:#edf4f7!important;
+  border-color:transparent!important;
+}
+.app-user-menu:hover,
+.app-user-menu[aria-expanded=true]{
+  color:#fff!important;
+  background:rgba(255,255,255,.075)!important;
+  border-color:rgba(255,255,255,.12)!important;
+}
+.app-user-avatar{
+  color:#d4e6f1!important;
+  background:rgba(255,255,255,.09)!important;
+  border:1px solid rgba(255,255,255,.08);
+}
+.app-user-copy strong{color:#fff!important}
+.app-user-copy small{color:#9fb5c3!important}
+.app-user-menu::after{color:#91aaba!important}
+
+/* Keep the main sidebar and project sidebar on one visual system. */
+.app-sidebar,
+.app-mode-tasks .tasks-sidebar{
+  background:linear-gradient(180deg,#182d3c 0%,#142633 100%)!important;
+  color:#dce7ed!important;
+  border-color:#284657!important;
+  box-shadow:4px 0 16px rgba(10,26,37,.08)!important;
+}
+
+/* Projects workspace geometry mirrors the main application sidebar. */
+.app-mode-tasks .tasks-workspace{
+  grid-template-columns:var(--app-sidebar-width) minmax(0,1fr)!important;
+  gap:0!important;
+  max-width:none!important;
+  margin:0!important;
+  align-items:stretch!important;
+}
+.app-mode-tasks .tasks-sidebar{
+  position:sticky!important;
+  top:var(--app-header-height)!important;
+  width:var(--app-sidebar-width)!important;
+  min-height:calc(100vh - var(--app-header-height))!important;
+  max-height:calc(100vh - var(--app-header-height))!important;
+  overflow-y:auto!important;
+  padding:0!important;
+  border:0!important;
+  border-right:1px solid #284657!important;
+  border-radius:0!important;
+}
+.app-mode-tasks .tasks-main{
+  min-width:0!important;
+  padding:28px clamp(22px,2.6vw,44px) 46px!important;
+}
+
+/* Projects sidebar header = main sidebar header */
+.app-mode-tasks .tasks-sidebar-brand{
+  min-height:auto!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:12px!important;
+  padding:21px 20px 18px!important;
+  margin:0!important;
+  border-bottom:1px solid rgba(255,255,255,.07)!important;
+}
+.app-mode-tasks .tasks-sidebar-mark{
+  display:grid!important;
+  place-items:center!important;
+  flex:0 0 44px!important;
+  width:44px!important;
+  height:44px!important;
+  padding:3px!important;
+  border:1px solid rgba(255,255,255,.14)!important;
+  border-radius:10px!important;
+  background:#fff!important;
+}
+.app-mode-tasks .tasks-sidebar-mark img{
+  width:36px!important;
+  height:36px!important;
+  object-fit:contain!important;
+}
+.app-mode-tasks .tasks-sidebar-brand strong{
+  color:#fff!important;
+  font-size:.92rem!important;
+  font-weight:800!important;
+  letter-spacing:-.01em!important;
+}
+.app-mode-tasks .tasks-sidebar-brand small{
+  margin-top:4px!important;
+  color:#9fb3c0!important;
+  font-size:.61rem!important;
+  letter-spacing:.11em!important;
+}
+
+/* Projects sidebar section labels = main sidebar labels */
+.app-mode-tasks .tasks-sidebar-label{
+  display:block!important;
+  padding:13px 21px 5px!important;
+  color:#8ea4b4!important;
+  font-size:.59rem!important;
+  font-weight:800!important;
+  letter-spacing:.13em!important;
+  text-transform:uppercase!important;
+}
+.app-mode-tasks .tasks-sidebar-section{
+  padding:0 11px!important;
+}
+.app-mode-tasks .tasks-sidebar-section .tasks-sidebar-label{
+  padding-left:10px!important;
+  padding-right:0!important;
+}
+.app-mode-tasks .tasks-sidebar-section>a{
+  color:#8fbad3!important;
+  padding:5px 9px!important;
+  border-radius:6px!important;
+}
+.app-mode-tasks .tasks-sidebar-section>a:hover{
+  color:#fff!important;
+  background:rgba(255,255,255,.06)!important;
+}
+
+/* Projects sidebar links = main sidebar links */
+.app-mode-tasks .tasks-sidebar-nav{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:3px!important;
+  margin:0!important;
+  padding:4px 11px 10px!important;
+}
+.app-mode-tasks .tasks-sidebar-nav a{
+  position:relative!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:11px!important;
+  min-height:40px!important;
+  padding:9px 11px!important;
+  border:1px solid transparent!important;
+  border-radius:7px!important;
+  color:#b9c8d2!important;
+  background:transparent!important;
+  text-decoration:none!important;
+  font-size:.79rem!important;
+  font-weight:650!important;
+  box-shadow:none!important;
+}
+.app-mode-tasks .tasks-sidebar-nav a i:first-child{
+  width:18px!important;
+  text-align:center!important;
+  color:#87a2b4!important;
+  font-size:.96rem!important;
+}
+.app-mode-tasks .tasks-sidebar-nav a:hover{
+  color:#fff!important;
+  background:rgba(255,255,255,.055)!important;
+  border-color:rgba(255,255,255,.035)!important;
+}
+.app-mode-tasks .tasks-sidebar-nav a.active{
+  color:#fff!important;
+  background:#29495d!important;
+  border-color:#36586b!important;
+  box-shadow:inset 3px 0 #55a7d5!important;
+}
+.app-mode-tasks .tasks-sidebar-nav a.active i:first-child{color:#7bc1e6!important}
+.app-mode-tasks .tasks-nav-count{
+  margin-left:auto!important;
+  color:#c9d9e2!important;
+  background:rgba(255,255,255,.08)!important;
+  border-radius:6px!important;
+  padding:2px 7px!important;
+}
+.app-mode-tasks .tasks-nav-count.danger{
+  color:#ffd9d8!important;
+  background:rgba(190,74,72,.25)!important;
+}
+.app-mode-tasks .tasks-project-links{
+  max-height:210px;
+  overflow-y:auto;
+}
+.app-mode-tasks .tasks-sidebar-hint{
+  padding:8px 11px!important;
+  color:#8199a9!important;
+  font-size:.72rem!important;
+}
+
+/* Projects footer block = main sidebar system block */
+.app-mode-tasks .tasks-sidebar-foot{
+  margin-top:auto!important;
+  padding:14px 18px!important;
+  border-top:1px solid rgba(255,255,255,.07)!important;
+  color:#a7bac7!important;
+  background:transparent!important;
+}
+.app-mode-tasks .tasks-sidebar-foot>i{
+  color:#69b9df!important;
+  font-size:.9rem!important;
+}
+.app-mode-tasks .tasks-sidebar-foot span{
+  font-size:.68rem!important;
+  line-height:1.35!important;
+}
+.app-mode-tasks .tasks-sidebar-foot strong{color:#d8e3e9!important}
+
+/* Preserve responsive behavior for the projects workspace. */
+@media(max-width:800px){
+  .app-mode-tasks .tasks-workspace{
+    display:block!important;
+  }
+  .app-mode-tasks .tasks-sidebar{
+    position:relative!important;
+    top:auto!important;
+    width:100%!important;
+    min-height:0!important;
+    max-height:none!important;
+    border-right:0!important;
+    border-bottom:1px solid #284657!important;
+  }
+  .app-mode-tasks .tasks-main{
+    padding:20px 15px 40px!important;
+  }
+}
