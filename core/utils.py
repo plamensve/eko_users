@@ -24,7 +24,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from .models import Card, Company, Price, Transaction
-from .services import ZERO, as_decimal, calculate_pricing, money2, quantity2
+from .services import ZERO, amount3, as_decimal, calculate_pricing, profit6, quantity6
 
 
 TWICE_MONTHLY_COMPANIES = {
@@ -139,7 +139,7 @@ def get_company_report_data(company, period="billing"):
     for item in transactions:
         price_record = _historical_price(prices, item.material, item.date)
         calc = calculate_pricing(quantity=item.bill_qty, transaction_price=item.price, product=item.material, price_record=price_record)
-        qty = quantity2(item.bill_qty)
+        qty = quantity6(item.bill_qty)
         rows.append({
             "date": item.date, "plant": item.plant, "card": item.card_number,
             "vehicle": item.card.vehicle if item.card else "", "material": item.material, "qty": qty,
@@ -153,7 +153,7 @@ def get_company_report_data(company, period="billing"):
         totals["eko"] += calc.eko_total
         totals["gta"] += calc.gta_total
         totals["profit"] += calc.profit
-    return rows, quantity2(totals["qty"]), money2(totals["eko"]), money2(totals["gta"]), money2(totals["profit"])
+    return rows, quantity6(totals["qty"]), amount3(totals["eko"]), amount3(totals["gta"]), profit6(totals["profit"])
 
 
 def _safe_name(value):
@@ -178,7 +178,7 @@ def _summary(data):
     result = []
     for product, values in sorted(grouped.items(), key=lambda pair: pair[1]["qty"], reverse=True):
         weighted = values["gta"] / values["qty"] if values["qty"] else ZERO
-        result.append((product, quantity2(values["qty"]), weighted.quantize(Decimal("0.00001")), money2(values["gta"]), money2(values["eko"])))
+        result.append((product, quantity6(values["qty"]), weighted.quantize(Decimal("0.00001")), amount3(values["gta"]), amount3(values["eko"])))
     return result
 
 
@@ -196,8 +196,9 @@ def export_company_excel(company, period="billing"):
         qty_fmt = workbook.add_format({"border": 1, "num_format": "0.00"})
         price_fmt = workbook.add_format({"border": 1, "num_format": "0.000"})
         avg_fmt = workbook.add_format({"border": 1, "num_format": "0.00000"})
-        amount_fmt = workbook.add_format({"border": 1, "num_format": "0.00"})
-        total_fmt = workbook.add_format({"bold": True, "bg_color": "#fff1b8", "border": 1, "num_format": "0.00"})
+        amount_fmt = workbook.add_format({"border": 1, "num_format": "0.000"})
+        total_qty_fmt = workbook.add_format({"bold": True, "bg_color": "#fff1b8", "border": 1, "num_format": "0.00"})
+        total_amount_fmt = workbook.add_format({"bold": True, "bg_color": "#fff1b8", "border": 1, "num_format": "0.000"})
         worksheet.write(0, 0, company.name, title)
         if company.note:
             worksheet.merge_range(1, 0, 1, 13, f"Забележка: {company.note}", workbook.add_format({"italic": True, "font_color": "#8a4b08", "text_wrap": True}))
@@ -223,11 +224,11 @@ def export_company_excel(company, period="billing"):
             worksheet.write_number(offset, 3, float(row[3]), amount_fmt)
             worksheet.write_number(offset, 4, float(row[4]), amount_fmt)
         total_row = summary_row + 2 + len(summary)
-        worksheet.write(total_row, 0, "ОБЩО", total_fmt)
-        worksheet.write_number(total_row, 1, float(total_qty), total_fmt)
-        worksheet.write(total_row, 2, "", total_fmt)
-        worksheet.write_number(total_row, 3, float(total_gta), total_fmt)
-        worksheet.write_number(total_row, 4, float(total_eko), total_fmt)
+        worksheet.write(total_row, 0, "ОБЩО", total_amount_fmt)
+        worksheet.write_number(total_row, 1, float(total_qty), total_qty_fmt)
+        worksheet.write(total_row, 2, "", total_amount_fmt)
+        worksheet.write_number(total_row, 3, float(total_gta), total_amount_fmt)
+        worksheet.write_number(total_row, 4, float(total_eko), total_amount_fmt)
     output.seek(0)
     return output
 
@@ -257,9 +258,9 @@ def export_company_pdf(company, period="billing"):
     table_rows = [["Дата", "Карта / МПС", "Продукт", "Литри", "GTA цена", "Сума GTA", "ЕКО цена", "Сума ЕКО"]]
     for row in data:
         table_rows.append([row["date"].strftime("%d.%m.%Y"), f'{row["card"]} / {row["vehicle"]}', row["material"],
-                           f'{row["qty"]:.2f}', f'{row["gta_price"]:.3f}', f'{row["gta_total"]:.2f}',
-                           f'{row["eko_price"]:.3f}', f'{row["eko_total"]:.2f}'])
-    table_rows.append(["ОБЩО", "", "", f"{total_qty:.2f}", "", f"{total_gta:.2f}", "", f"{total_eko:.2f}"])
+                           f'{row["qty"]:.2f}', f'{row["gta_price"]:.3f}', f'{row["gta_total"]:.3f}',
+                           f'{row["eko_price"]:.3f}', f'{row["eko_total"]:.3f}'])
+    table_rows.append(["ОБЩО", "", "", f"{total_qty:.2f}", "", f"{total_gta:.3f}", "", f"{total_eko:.3f}"])
     table = Table(table_rows, repeatRows=1, colWidths=[58, 128, 150, 54, 62, 68, 62, 68])
     table.setStyle(TableStyle([
         ("FONTNAME", (0, 0), (-1, -1), font), ("FONTSIZE", (0, 0), (-1, -1), 7.5),
@@ -274,7 +275,7 @@ def export_company_pdf(company, period="billing"):
     if summary:
         elements.extend([Spacer(1, 14), Paragraph("Обобщение по продукти", title_style)])
         summary_rows = [["Продукт", "Общо литри", "Средна GTA цена", "Сума GTA", "Сума ЕКО"]]
-        summary_rows += [[r[0], f"{r[1]:.2f}", f"{r[2]:.5f}", f"{r[3]:.2f}", f"{r[4]:.2f}"] for r in summary]
+        summary_rows += [[r[0], f"{r[1]:.2f}", f"{r[2]:.5f}", f"{r[3]:.3f}", f"{r[4]:.3f}"] for r in summary]
         summary_table = Table(summary_rows, repeatRows=1, colWidths=[220, 90, 110, 90, 90])
         summary_table.setStyle(TableStyle([
             ("FONTNAME", (0, 0), (-1, -1), font), ("FONTSIZE", (0, 0), (-1, -1), 8),
