@@ -419,5 +419,7 @@ class AnalyticsExcelTests(TestCase):
         self.assertContains(detail_response, "Несвързани транзакции")
         self.assertContains(detail_response, "UNLINKED-DETAIL")
         self.assertContains(detail_response, "DIESEL EKONOMY")
+        self.assertContains(detail_response, "fuel-pill fuel-pill--diesel")
+        self.assertContains(detail_response, "bi-truck-front-fill")
         self.assertContains(detail_response, 'class="company-transactions-table"')
         self.assertNotContains(detail_response, ">Цени</a>")
