@@ -1836,3 +1836,24 @@ body{font-size:15px!important}
   font-size:.86rem!important;
   font-weight:850!important;
 }
+
+
+/* Fuel cards workspace sidebar illustration */
+.app-sidebar-visual-head{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-height:116px!important;
+  padding:18px!important;
+  background:
+    radial-gradient(circle at 50% 20%,rgba(255,255,255,.08),transparent 65%),
+    rgba(255,255,255,.015)!important;
+}
+.app-sidebar-visual-art{
+  display:block;
+  width:116px;
+  max-width:78%;
+  height:auto;
+  opacity:.96;
+  filter:drop-shadow(0 6px 14px rgba(0,0,0,.13));
+}
