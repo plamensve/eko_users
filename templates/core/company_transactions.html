@@ -2,15 +2,33 @@
 {% block title %}{{ company.name }} · GTA Manager{% endblock %}
 {% block content %}
 <div class="page-heading">
-  <div><div class="eyebrow">Фирмен отчет</div><h1 class="page-title">{{ company.name }}</h1><p class="page-subtitle">ЕИК {{ company.eik }} · {% if company.is_twice_monthly %}Двукратно фактуриране{% else %}Месечно фактуриране{% endif %}</p></div>
-  <div class="action-group"><a class="btn btn-success" href="{% url 'export_excel' company.id %}?report={{ report_type }}"><i class="bi bi-file-earmark-excel me-1"></i>Excel</a><a class="btn btn-outline-danger" href="{% url 'export_pdf' company.id %}?report={{ report_type }}"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</a><a class="btn btn-outline-secondary" href="{% url 'company_prices' company.id %}">Цени</a></div>
+  <div>
+    <div class="eyebrow">{% if is_unknown %}Несвързани транзакции{% else %}Фирмен отчет{% endif %}</div>
+    <h1 class="page-title">{{ company.name }}</h1>
+    <p class="page-subtitle">
+      {% if is_unknown %}
+        Карти без свързана фирма · Виртуална група
+      {% else %}
+        ЕИК {{ company.eik }} · {% if company.is_twice_monthly %}Двукратно фактуриране{% else %}Месечно фактуриране{% endif %}
+      {% endif %}
+    </p>
+  </div>
+  <div class="action-group">
+    {% if is_unknown %}
+      <a class="btn btn-outline-secondary" href="{% url 'analytics' %}?report={{ report_type }}"><i class="bi bi-arrow-left me-1"></i>Към Аналитика</a>
+    {% else %}
+      <a class="btn btn-success" href="{% url 'export_excel' company.id %}?report={{ report_type }}"><i class="bi bi-file-earmark-excel me-1"></i>Excel</a>
+      <a class="btn btn-outline-danger" href="{% url 'export_pdf' company.id %}?report={{ report_type }}"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</a>
+      <a class="btn btn-outline-secondary" href="{% url 'company_prices' company.id %}">Цени</a>
+    {% endif %}
+  </div>
 </div>
 {% if company.note %}<div class="alert alert-warning"><strong>Забележка към фактурата:</strong> {{ company.note }}</div>{% endif %}
 <div class="surface mb-4 p-2"><div class="nav nav-pills report-period-nav flex-column flex-sm-row">
-  <a class="nav-link text-center {% if report_type == 'billing' %}active{% endif %}" href="?report=billing">За фактуриране</a>
+  {% if not is_unknown %}<a class="nav-link text-center {% if report_type == 'billing' %}active{% endif %}" href="?report=billing">За фактуриране</a>{% endif %}
   <a class="nav-link text-center {% if report_type == 'first' %}active{% endif %}" href="?report=first">01–15</a>
   <a class="nav-link text-center {% if report_type == 'second' %}active{% endif %}" href="?report=second">16–края</a>
-  <a class="nav-link text-center {% if report_type == 'full' %}active{% endif %}" href="?report=full">Целият период</a>
+  <a class="nav-link text-center {% if report_type == 'full' or is_unknown and report_type == 'billing' %}active{% endif %}" href="?report=full">Целият период</a>
 </div></div>
 <div class="row g-3 mb-4">
   <div class="col-6 col-xl-3"><div class="surface metric-card"><div class="metric-label">Количество</div><div class="metric-value">{{ total_qty|stringformat:'.2f' }}</div><div class="metric-meta">литра</div></div></div>
