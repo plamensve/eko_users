@@ -137,6 +137,7 @@ class AccessTests(TestCase):
         home = self.client.get(reverse("home"))
         self.assertContains(home, "GTA Manager")
         self.assertContains(home, "Картови зареждания")
+        self.assertNotContains(home, 'class="app-footer"')
 
         chains = self.client.get(reverse("fuel_card_chains"))
         self.assertContains(chains, "ЕКО")
@@ -149,7 +150,7 @@ class AccessTests(TestCase):
         self.assertContains(chains, "img/logos/himoil-icon.png")
         self.assertContains(home, "img/logos/gta-original-diamond.svg")
         self.assertContains(chains, 'width="78" height="78"', count=4)
-        self.assertContains(chains, "app.css?v=20261003-enterprise-ui-3")
+        self.assertContains(chains, "app.css?v=20261003-enterprise-ui-4")
         self.assertContains(chains, f'href="{reverse("index")}"')
 
     def test_login_redirects_to_gta_home(self):
