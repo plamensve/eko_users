@@ -592,3 +592,73 @@ h1,h2,h3,h4,h5,h6{color:#1c3447}
 .app-mode-tasks .tasks-sidebar-mark{background:transparent!important;border-radius:8px!important}
 .app-mode-tasks .tasks-sidebar-section>a{color:#77b6da!important}
 .app-mode-tasks .tasks-sidebar-foot{border-top-color:rgba(255,255,255,.08)!important;color:#9bb0bd!important}
+
+
+/* Enterprise contrast audit — contextual text colors */
+.app-brand-copy small{color:#637587}
+.app-user-copy small{color:#66798a}
+.app-sidebar-kicker{color:#8fb6cf}
+.app-sidebar-label{color:#8fa5b5}
+.app-sidebar-head>small,.app-sidebar-module>div>small{color:#a7bac7}
+.app-sidebar-foot strong{color:#d8e3e9}
+.app-sidebar-foot small{color:#98acba}
+.page-subtitle{color:#5f7284}
+.metric-label{color:#5d7183}
+.metric-meta{color:#66798a}
+.app-footer{color:#637788}
+.app-footer-copy{color:#637788}
+
+/* Headings on dark surfaces must not inherit the global dark heading color. */
+.gta-home-hero,
+.hero-panel{color:#eef7fb!important}
+.gta-home-hero h1,
+.gta-home-hero h2,
+.gta-home-hero h3,
+.gta-home-hero h4,
+.gta-home-hero h5,
+.gta-home-hero h6,
+.hero-panel h1,
+.hero-panel h2,
+.hero-panel h3,
+.hero-panel h4,
+.hero-panel h5,
+.hero-panel h6{color:#fff!important}
+.gta-home-hero .lead,
+.hero-panel .lead{color:#dbe8ef!important}
+.gta-home-hero .opacity-75,
+.hero-panel .opacity-75{opacity:1!important;color:#cfdee7!important}
+
+/* Bootstrap dark headers contain child headings with their own global color. */
+.bg-dark h1,
+.bg-dark h2,
+.bg-dark h3,
+.bg-dark h4,
+.bg-dark h5,
+.bg-dark h6,
+.text-white h1,
+.text-white h2,
+.text-white h3,
+.text-white h4,
+.text-white h5,
+.text-white h6{color:#fff!important}
+.card-header.bg-dark,
+.card-header.bg-dark h1,
+.card-header.bg-dark h2,
+.card-header.bg-dark h3,
+.card-header.bg-dark h4,
+.card-header.bg-dark h5,
+.card-header.bg-dark h6{color:#fff!important}
+
+/* KPI cards: darker enterprise fills give white text WCAG-safe contrast. */
+.analytics-card.text-white,
+.analytics-card.text-white .card-header,
+.analytics-card.text-white .card-body,
+.analytics-card.text-white .analytics-value,
+.analytics-card.text-white .card-text{color:#fff!important}
+.analytics-card.bg-primary{background:#286a9d!important}
+.analytics-card.bg-success{background:#237d58!important}
+.analytics-card.bg-info{background:#197895!important}
+
+/* Preserve warning accents on dark hero sections. */
+.gta-home-hero .text-warning,
+.hero-panel .text-warning{color:#ffd45e!important}
