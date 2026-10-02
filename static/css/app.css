@@ -1514,3 +1514,61 @@ body{padding-bottom:0!important}
   }
   .app-back-button span{display:none}
 }
+
+
+/* In-page back navigation */
+.app-page-back-wrap{
+  display:flex;
+  align-items:center;
+  margin:0 0 14px;
+}
+.app-page-back{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  min-height:32px;
+  padding:5px 9px;
+  color:#414d5c;
+  background:#fff;
+  border:1px solid #aab7b8;
+  border-radius:4px;
+  box-shadow:none;
+  font-size:.73rem;
+  font-weight:650;
+  line-height:1;
+  transition:background .12s,border-color .12s,color .12s;
+}
+.app-page-back i{font-size:.9rem}
+.app-page-back:hover{
+  color:#16191f;
+  background:#f1f3f3;
+  border-color:#879596;
+}
+.app-page-back:focus-visible{
+  outline:2px solid rgba(9,114,211,.35);
+  outline-offset:2px;
+}
+
+/* Projects pages use their own grid, so keep the in-page control aligned with content. */
+.app-mode-tasks .tasks-page-shell>.app-page-back-wrap{
+  position:absolute;
+  top:12px;
+  left:calc(var(--app-sidebar-width) + 24px);
+  z-index:20;
+  margin:0;
+}
+.app-mode-tasks .tasks-main{
+  padding-top:62px!important;
+}
+
+@media(max-width:800px){
+  .app-mode-tasks .tasks-page-shell>.app-page-back-wrap{
+    position:relative;
+    top:auto;
+    left:auto;
+    padding:14px 14px 0;
+  }
+  .app-mode-tasks .tasks-main{
+    padding-top:14px!important;
+  }
+}
