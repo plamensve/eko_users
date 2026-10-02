@@ -10,7 +10,7 @@ import pandas as pd
 
 from .models import Company
 from .services import normalize_product_key
-from .utils import get_company_report_data
+from .utils import get_company_report_data, get_unknown_report_data
 
 # ============================================================
 # SETTINGS
@@ -2296,6 +2296,36 @@ def generate_analytics_workbook(period="full"):
             "sheet_name": company.name[:31],
             **calculate_company_values(frame),
         })
+
+    unknown_rows, *_ = get_unknown_report_data(period=period)
+    if unknown_rows:
+        unknown_records = [{
+            PRODUCT_COLUMN: row["material"],
+            LITERS_COLUMN: float(row["qty"]),
+            AMOUNT_COLUMN: float(row["gta_total"]),
+            BASE_PRICE_COLUMN: float(row["eko_base_price"]),
+            EKO_PRICE_COLUMN: float(row["eko_price"]),
+            DISCOUNT_COLUMN: float(row["discount"]),
+            MARGIN_COLUMN: float(row["margin"]),
+            PROFIT_COLUMN: float(row["profit"]),
+        } for row in unknown_rows]
+        unknown_frame = filter_configured_products(pd.DataFrame.from_records(unknown_records))
+        if not unknown_frame.empty:
+            configured_aliases = {
+                normalize_text(alias)
+                for product in PRODUCTS
+                for alias in product["aliases"]
+            }
+            all_dates.extend(
+                row["date"]
+                for row in unknown_rows
+                if normalize_text(row["material"]) in configured_aliases
+            )
+            company_results.append({
+                "company_name": "Unknown",
+                "sheet_name": "Unknown",
+                **calculate_company_values(unknown_frame),
+            })
 
     if not company_results:
         raise ValueError("Няма транзакции от включените продукти за избрания период.")
