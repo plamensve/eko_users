@@ -11,6 +11,7 @@ urlpatterns = [
     path('upload/', views.upload_files, name='upload'),
     path('companies/', views.company_list, name='company_list'),
     path('companies/suggestions/', views.company_search_suggestions, name='company_search_suggestions'),
+    path('companies/unknown/', views.unknown_transactions, name='unknown_transactions'),
     path('companies/<int:company_id>/', views.company_transactions, name='company_transactions'),
     path('companies/<int:company_id>/excel/', views.export_excel, name='export_excel'),
     path('companies/<int:company_id>/pdf/', views.export_pdf, name='export_pdf'),
