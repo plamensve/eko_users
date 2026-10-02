@@ -1857,3 +1857,55 @@ body{font-size:15px!important}
   opacity:.96;
   filter:drop-shadow(0 6px 14px rgba(0,0,0,.13));
 }
+
+
+/* Card fuel module header matches Projects & Tasks identity block */
+.app-sidebar-module-brand{
+  display:flex!important;
+  align-items:center!important;
+  gap:12px!important;
+  min-height:88px!important;
+  padding:18px 16px!important;
+}
+.app-sidebar-module-logo--workspace{
+  display:grid!important;
+  place-items:center!important;
+  flex:0 0 48px!important;
+  width:48px!important;
+  height:48px!important;
+  padding:4px!important;
+  overflow:hidden!important;
+  border-radius:11px!important;
+  background:#fff!important;
+  border:1px solid rgba(255,255,255,.2)!important;
+  box-shadow:0 2px 8px rgba(0,0,0,.12)!important;
+}
+.app-sidebar-module-logo--workspace img{
+  display:block!important;
+  width:40px!important;
+  height:40px!important;
+  object-fit:contain!important;
+}
+.app-sidebar-module-copy{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.app-sidebar-module-copy strong{
+  color:#fff!important;
+  font-size:.95rem!important;
+  font-weight:800!important;
+  line-height:1.12!important;
+  letter-spacing:-.01em!important;
+  white-space:nowrap;
+}
+.app-sidebar-module-copy small{
+  display:block;
+  margin-top:6px!important;
+  color:#a9c1cf!important;
+  font-size:.61rem!important;
+  font-weight:700!important;
+  letter-spacing:.12em!important;
+  line-height:1!important;
+}
