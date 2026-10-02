@@ -10,7 +10,7 @@ from django.urls import reverse
 
 from .models import Card, Company, Price, Transaction
 from .services import calculate_pricing
-from .utils import ImportResult, get_company_report_data, get_invoice_period, relink_data
+from .utils import ImportResult, get_company_report_data, get_invoice_period, get_unknown_report_data, relink_data
 
 
 class PricingRulesTests(TestCase):
@@ -90,6 +90,24 @@ class ReportingTests(TestCase):
         rows, total_qty, *_ = get_company_report_data(self.company, period="billing")
         self.assertEqual(len(rows), 1)
         self.assertEqual(total_qty, Decimal("20.00"))
+
+
+    def test_unlinked_transactions_are_grouped_as_unknown(self):
+        Transaction.objects.create(
+            plant="1",
+            card_number="UNKNOWN-CARD",
+            card=None,
+            material="DIESEL EKONOMY",
+            date=date(2026, 9, 12),
+            bill_qty="25.266",
+            price="2.500",
+            amount="63.17",
+        )
+        rows, total_qty, _total_eko, total_gta, total_profit = get_unknown_report_data(period="full")
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(total_qty, Decimal("25.266000"))
+        self.assertEqual(total_gta, Decimal("63.165"))
+        self.assertEqual(total_profit, Decimal("0.000000"))
 
 
 class AccessTests(TestCase):
@@ -340,3 +358,21 @@ class AnalyticsExcelTests(TestCase):
         Transaction.objects.all().delete()
         response = self.client.get(reverse("analytics_excel"), {"report": "first"}, follow=True)
         self.assertContains(response, "Няма транзакции")
+
+
+    def test_analytics_includes_unknown_group_in_totals(self):
+        Transaction.objects.create(
+            plant="1",
+            card_number="UNLINKED-1",
+            card=None,
+            material="DIESEL EKONOMY",
+            date=date(2026, 9, 10),
+            bill_qty="25",
+            price="2.500",
+            amount="62.50",
+        )
+        response = self.client.get(reverse("analytics"), {"report": "full"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Unknown")
+        self.assertEqual(response.context["grand_total_qty"], Decimal("55.000000"))
+        self.assertEqual(response.context["grand_total_gta"], Decimal("107.500"))
