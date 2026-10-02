@@ -127,6 +127,7 @@ class AccessTests(TestCase):
         self.assertContains(response, "img/logos/eko-icon.png")
         self.assertContains(response, 'class="eko-hero-brand"')
         self.assertContains(response, "Текущ отчетен период")
+        self.assertNotContains(response, "Проекти и задачи")
 
     def test_gta_home_and_fuel_chain_selector(self):
         user = get_user_model().objects.create_user(username="manager", password="safe-test-password")
