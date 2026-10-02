@@ -34,10 +34,10 @@ class Price(models.Model):
     company_name_tmp = models.CharField(max_length=255, blank=True, null=True, verbose_name="Име на фирма (временно)")
     company_eik_tmp = models.CharField(max_length=20, blank=True, null=True, verbose_name="ЕИК (временно)")
     product = models.CharField(max_length=255, verbose_name="Продукт")
-    final_price = models.DecimalField(max_digits=10, decimal_places=4, verbose_name="Крайна цена")
-    eko_price = models.DecimalField(max_digits=10, decimal_places=4, default=0, verbose_name="ЕКО цена")
-    margin = models.DecimalField(max_digits=10, decimal_places=4, default=0, verbose_name="Марж")
-    discount = models.DecimalField(max_digits=10, decimal_places=4, default=0, verbose_name="Отстъпка")
+    final_price = models.DecimalField(max_digits=12, decimal_places=6, verbose_name="Крайна цена")
+    eko_price = models.DecimalField(max_digits=12, decimal_places=6, default=0, verbose_name="ЕКО цена")
+    margin = models.DecimalField(max_digits=12, decimal_places=6, default=0, verbose_name="Марж")
+    discount = models.DecimalField(max_digits=12, decimal_places=6, default=0, verbose_name="Отстъпка")
 
     @property
     def product_kind(self):
@@ -74,9 +74,9 @@ class Transaction(models.Model):
     card = models.ForeignKey(Card, on_delete=models.SET_NULL, null=True, blank=True, related_name='transactions')
     material = models.CharField(max_length=255, verbose_name="Материал")
     date = models.DateField(verbose_name="Дата")
-    bill_qty = models.DecimalField(max_digits=10, decimal_places=3, verbose_name="Количество")
+    bill_qty = models.DecimalField(max_digits=14, decimal_places=6, verbose_name="Количество")
     bill_qty2 = models.CharField(max_length=50, blank=True, null=True, verbose_name="Тип количество")
-    price = models.DecimalField(max_digits=10, decimal_places=4, verbose_name="ЕКО цена")
+    price = models.DecimalField(max_digits=12, decimal_places=6, verbose_name="ЕКО цена")
     amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Сума")
     auth_time = models.TimeField(null=True, blank=True, verbose_name="Час")
     km_stand = models.IntegerField(null=True, blank=True, verbose_name="Километри")
