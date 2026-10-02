@@ -17,8 +17,9 @@ class PricingRulesTests(TestCase):
     def test_margin_uses_base_price_and_truncates_to_three_decimals(self):
         record = SimpleNamespace(margin=Decimal("0.0300"), discount=0, final_price=Decimal("1.4700"), eko_price=Decimal("1.4559"))
         result = calculate_pricing(quantity="10", transaction_price="1.600", product="DIESEL", price_record=record)
-        self.assertEqual(result.gta_price, Decimal("1.485"))
-        self.assertEqual(result.profit, Decimal("0.30"))
+        self.assertEqual(result.eko_base_price, Decimal("1.456"))
+        self.assertEqual(result.gta_price, Decimal("1.486"))
+        self.assertEqual(result.profit, Decimal("0.300000"))
 
     def test_discount_uses_transaction_price(self):
         record = SimpleNamespace(margin=0, discount=Decimal("0.050"), final_price=Decimal("1.500"), eko_price=Decimal("1.480"))
@@ -36,13 +37,38 @@ class PricingRulesTests(TestCase):
         with_discount = SimpleNamespace(margin=0, discount=Decimal("0.100"), final_price=Decimal("0.700"), eko_price=Decimal("0.690"))
         first = calculate_pricing(quantity="37.5", transaction_price="0.750", product="E GAS LPG", price_record=without_discount)
         second = calculate_pricing(quantity="37.5", transaction_price="0.750", product="Е GАS LРG", price_record=with_discount)
-        self.assertEqual(first.profit, Decimal("0.56"))
-        self.assertEqual(second.profit, Decimal("-3.19"))
+        self.assertEqual(first.profit, Decimal("0.562500"))
+        self.assertEqual(second.profit, Decimal("-3.187500"))
 
     def test_negative_discount_price_is_clamped_to_zero(self):
         record = SimpleNamespace(margin=0, discount=Decimal("2.000"), final_price=0, eko_price=Decimal("1.000"))
         result = calculate_pricing(quantity="5", transaction_price="1.500", product="DIESEL", price_record=record)
         self.assertEqual(result.gta_price, Decimal("0.000"))
+
+    def test_reference_pipeline_keeps_six_decimal_quantity_and_three_decimal_totals(self):
+        result = calculate_pricing(
+            quantity="37.567",
+            transaction_price="1.5634",
+            product="DIESEL",
+            price_record=None,
+        )
+        self.assertEqual(result.eko_total, Decimal("58.717"))
+        self.assertEqual(result.gta_total, Decimal("58.717"))
+
+    def test_reference_pipeline_keeps_profit_to_six_decimals(self):
+        record = SimpleNamespace(
+            margin=Decimal("0.0300"),
+            discount=0,
+            final_price=Decimal("1.5000"),
+            eko_price=Decimal("1.4550"),
+        )
+        result = calculate_pricing(
+            quantity="37.567",
+            transaction_price="1.600",
+            product="DIESEL",
+            price_record=record,
+        )
+        self.assertEqual(result.profit, Decimal("1.127010"))
 
 
 class ReportingTests(TestCase):
@@ -128,6 +154,8 @@ class CompanySearchTests(TestCase):
         response = self.client.get(reverse("company_transactions", args=[self.auto_petkov.id]))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "report-period-nav")
+        self.assertContains(response, 'class="company-transactions-table"')
+        self.assertContains(response, 'class="transaction-index">№</th>')
 
     def test_suggestions_match_company_name_from_the_beginning(self):
         response = self.client.get(reverse("company_search_suggestions"), {"term": "авт"})
