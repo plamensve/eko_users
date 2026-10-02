@@ -427,7 +427,7 @@
 
                         {% for item in analytics_data %}
 
-                            <tr class="analytics-company-row" data-company-name="{{ item.company.name }}" data-company-eik="{{ item.company.eik }}">
+                            <tr class="analytics-company-row" data-company-name="{{ item.name }}" data-company-eik="{{ item.eik }}">
 
                                 <td>
                                     <span class="analytics-company-number">{{ forloop.counter }}</span>
@@ -436,20 +436,22 @@
 
                                 <td>
 
-                                    <a
-                                        href="{% url 'company_transactions' item.company.id %}"
-                                        class="company-link"
-                                    >
-                                        {{ item.company.name }}
-                                    </a>
+                                    {% if item.is_unknown %}
+                                        <span class="company-link">Unknown</span>
+                                        <span class="badge badge-secondary ml-2">Несвързани карти</span>
+                                    {% else %}
+                                        <a
+                                            href="{% url 'company_transactions' item.company_id %}"
+                                            class="company-link"
+                                        >
+                                            {{ item.name }}
+                                        </a>
 
-
-                                    {% if item.company.is_twice_monthly %}
-
-                                        <span class="badge badge-warning ml-2">
-                                            2× месечно
-                                        </span>
-
+                                        {% if item.is_twice_monthly %}
+                                            <span class="badge badge-warning ml-2">
+                                                2× месечно
+                                            </span>
+                                        {% endif %}
                                     {% endif %}
 
                                 </td>
