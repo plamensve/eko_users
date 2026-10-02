@@ -248,6 +248,8 @@ class PriceListTests(TestCase):
             list(response.context["prices"].values_list("date", flat=True)),
             [date(2026, 9, 10), date(2026, 9, 18)],
         )
+        self.assertContains(response, "fuel-pill fuel-pill--diesel")
+        self.assertContains(response, "bi-truck-front-fill")
 
     def test_price_list_filters_by_company_product_and_date(self):
         response = self.client.get(reverse("price_list"), {
