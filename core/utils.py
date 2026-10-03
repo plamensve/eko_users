@@ -146,7 +146,8 @@ def get_company_report_data(company, period="billing"):
             "qty_type": item.bill_qty2 or "", "eko_base_price": calc.eko_base_price,
             "gta_price": calc.gta_price, "discount": calc.discount, "margin": calc.margin,
             "profit": calc.profit, "gta_total": calc.gta_total, "eko_price": round3(item.price),
-            "eko_total": calc.eko_total, "auth_time": item.auth_time, "km_stand": item.km_stand,
+            "eko_total": calc.eko_total, "eko_base_total": amount3(qty * calc.eko_base_price),
+            "auth_time": item.auth_time, "km_stand": item.km_stand,
             "billing_doc": item.billing_document or "", "has_price": price_record is not None,
         })
         totals["qty"] += qty
@@ -183,7 +184,8 @@ def get_unknown_report_data(period="full"):
             "qty_type": item.bill_qty2 or "", "eko_base_price": calc.eko_base_price,
             "gta_price": calc.gta_price, "discount": calc.discount, "margin": calc.margin,
             "profit": calc.profit, "gta_total": calc.gta_total, "eko_price": round3(item.price),
-            "eko_total": calc.eko_total, "auth_time": item.auth_time, "km_stand": item.km_stand,
+            "eko_total": calc.eko_total, "eko_base_total": amount3(qty * calc.eko_base_price),
+            "auth_time": item.auth_time, "km_stand": item.km_stand,
             "billing_doc": item.billing_document or "", "has_price": False,
         })
         totals["qty"] += qty
