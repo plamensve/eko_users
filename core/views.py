@@ -384,6 +384,32 @@ def price_list(request):
     product_count = prices.values('product').distinct().count()
     paginator = Paginator(prices, 100)
     page_obj = paginator.get_page(request.GET.get('page'))
+
+    # FinPr belongs to the transaction file, not the price list.  Attach the
+    # distinct pump prices that exist for the exact price-list date/product so
+    # /prices/ can show the real column price without inventing a fallback.
+    page_prices = list(page_obj.object_list)
+    page_obj.object_list = page_prices
+    price_keys = {
+        (price.date, normalize_text(price.product))
+        for price in page_prices
+    }
+    column_price_map = {}
+    if price_keys:
+        dates = {price_date for price_date, _ in price_keys}
+        transactions = Transaction.objects.filter(date__in=dates).values_list(
+            'date', 'material', 'price'
+        )
+        for transaction_date, material, transaction_price in transactions.iterator():
+            key = (transaction_date, normalize_text(material))
+            if key not in price_keys:
+                continue
+            column_price_map.setdefault(key, set()).add(transaction_price)
+
+    for price in page_prices:
+        key = (price.date, normalize_text(price.product))
+        price.column_prices = sorted(column_price_map.get(key, set()))
+
     query_params = request.GET.copy()
     query_params.pop('page', None)
 
@@ -520,7 +546,6 @@ def analytics(request):
     # Keep the web Analytics KPIs on exactly the same product scope as the
     # verified management Excel report.
     from .analytics_export import PRODUCTS
-    from .services import round3
 
     configured_products = {
         normalize_text(alias)
@@ -533,35 +558,12 @@ def analytics(request):
             row for row in rows
             if normalize_text(row["material"]) in configured_products
         ]
-        total_qty = sum((row["qty"] for row in included), Decimal("0"))
-        total_gta = sum((row["gta_total"] for row in included), Decimal("0"))
-        total_profit = sum((row["profit"] for row in included), Decimal("0"))
-        eko_column_value = sum(
-            (row["qty"] * row["eko_price"] for row in included),
-            Decimal("0"),
-        )
-        eko_to_gta_value = sum(
-            (row["qty"] * row["eko_base_price"] for row in included),
-            Decimal("0"),
-        )
-        gta_client_value = sum(
-            (row["qty"] * row["gta_price"] for row in included),
-            Decimal("0"),
-        )
         return (
             included,
-            total_qty,
-            total_gta,
-            total_profit,
-            eko_column_value,
-            eko_to_gta_value,
-            gta_client_value,
+            sum((row["qty"] for row in included), Decimal("0")),
+            sum((row["gta_total"] for row in included), Decimal("0")),
+            sum((row["profit"] for row in included), Decimal("0")),
         )
-
-    def average_price(total_value, total_qty):
-        if total_qty <= 0:
-            return Decimal("0")
-        return round3(total_value / total_qty)
 
     companies = Company.objects.all().order_by('name')
     analytics_data = []
@@ -569,9 +571,6 @@ def analytics(request):
     grand_total_qty = Decimal("0")
     grand_total_profit = Decimal("0")
     grand_total_gta = Decimal("0")
-    grand_eko_column_value = Decimal("0")
-    grand_eko_to_gta_value = Decimal("0")
-    grand_gta_client_value = Decimal("0")
 
     report_type = request.GET.get('report', 'full')
 
@@ -583,15 +582,7 @@ def analytics(request):
             company,
             period=report_type
         )
-        (
-            included_rows,
-            t_qty,
-            t_gta,
-            t_profit,
-            eko_column_value,
-            eko_to_gta_value,
-            gta_client_value,
-        ) = analytics_totals(rows)
+        included_rows, t_qty, t_gta, t_profit = analytics_totals(rows)
 
         if t_qty > 0:
             analytics_data.append({
@@ -602,9 +593,6 @@ def analytics(request):
                 'is_twice_monthly': company.is_twice_monthly,
                 'is_unknown': False,
                 'total_qty': t_qty,
-                'avg_eko_column_price': average_price(eko_column_value, t_qty),
-                'avg_eko_to_gta_price': average_price(eko_to_gta_value, t_qty),
-                'avg_gta_client_price': average_price(gta_client_value, t_qty),
                 'total_gta': t_gta,
                 'total_profit': t_profit,
                 'transaction_count': len(included_rows),
@@ -613,20 +601,9 @@ def analytics(request):
             grand_total_qty += t_qty
             grand_total_profit += t_profit
             grand_total_gta += t_gta
-            grand_eko_column_value += eko_column_value
-            grand_eko_to_gta_value += eko_to_gta_value
-            grand_gta_client_value += gta_client_value
 
     unknown_rows, *_ = get_unknown_report_data(period=report_type)
-    (
-        included_unknown,
-        unknown_qty,
-        unknown_gta,
-        unknown_profit,
-        unknown_eko_column_value,
-        unknown_eko_to_gta_value,
-        unknown_gta_client_value,
-    ) = analytics_totals(unknown_rows)
+    included_unknown, unknown_qty, unknown_gta, unknown_profit = analytics_totals(unknown_rows)
 
     if unknown_qty > 0:
         analytics_data.append({
@@ -637,9 +614,6 @@ def analytics(request):
             'is_twice_monthly': False,
             'is_unknown': True,
             'total_qty': unknown_qty,
-            'avg_eko_column_price': average_price(unknown_eko_column_value, unknown_qty),
-            'avg_eko_to_gta_price': average_price(unknown_eko_to_gta_value, unknown_qty),
-            'avg_gta_client_price': average_price(unknown_gta_client_value, unknown_qty),
             'total_gta': unknown_gta,
             'total_profit': unknown_profit,
             'transaction_count': len(included_unknown),
@@ -647,22 +621,14 @@ def analytics(request):
         grand_total_qty += unknown_qty
         grand_total_profit += unknown_profit
         grand_total_gta += unknown_gta
-        grand_eko_column_value += unknown_eko_column_value
-        grand_eko_to_gta_value += unknown_eko_to_gta_value
-        grand_gta_client_value += unknown_gta_client_value
 
     return render(request, 'core/analytics.html', {
         'analytics_data': analytics_data,
         'grand_total_qty': grand_total_qty,
         'grand_total_profit': grand_total_profit,
         'grand_total_gta': grand_total_gta,
-        'grand_avg_eko_column_price': average_price(grand_eko_column_value, grand_total_qty),
-        'grand_avg_eko_to_gta_price': average_price(grand_eko_to_gta_value, grand_total_qty),
-        'grand_avg_gta_client_price': average_price(grand_gta_client_value, grand_total_qty),
         'report_type': report_type
     })
-
-
 
 @login_required
 def analytics_excel(request):
