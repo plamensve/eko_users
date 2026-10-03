@@ -107,6 +107,8 @@ class PricingResult:
     eko_base_price: Decimal
     discount: Decimal
     margin: Decimal
+    pricing_method: str
+    pricing_adjustment: Decimal
     eko_total: Decimal
     gta_total: Decimal
     profit: Decimal
@@ -132,12 +134,20 @@ def calculate_pricing(*, quantity, transaction_price, product, price_record=None
 
     if margin > ZERO:
         gta_price = price3(base + margin)
+        pricing_method = "margin"
+        pricing_adjustment = margin
     elif discount > ZERO:
         gta_price = price3(max(eko_price - discount, ZERO))
+        pricing_method = "discount"
+        pricing_adjustment = discount
     elif negotiated is not None:
         gta_price = price3(negotiated)
+        pricing_method = "final_price"
+        pricing_adjustment = ZERO
     else:
         gta_price = price3(eko_price)
+        pricing_method = "transaction_price"
+        pricing_adjustment = ZERO
 
     normalized_product = normalize_product_key(product)
     if normalized_product == "E GAS LPG":
@@ -155,6 +165,8 @@ def calculate_pricing(*, quantity, transaction_price, product, price_record=None
         eko_base_price=base,
         discount=discount,
         margin=margin,
+        pricing_method=pricing_method,
+        pricing_adjustment=pricing_adjustment,
         eko_total=amount3(qty * eko_price),
         gta_total=amount3(qty * gta_price),
         profit=profit6(profit),
