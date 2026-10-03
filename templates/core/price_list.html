@@ -1,26 +1,103 @@
 {% extends 'base.html' %}
 {% load fuel_tags %}
-{% block title %}Импортнати цени · GTA Manager{% endblock %}
+{% block title %}Импортирани цени · GTA Manager{% endblock %}
 {% block extra_head %}<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">{% endblock %}
 {% block content %}
 <div class="page-heading">
-  <div><div class="eyebrow">Ценови листи</div><h1 class="page-title">Импортнати цени</h1><p class="page-subtitle">Преглед на входните ценови параметри, маржове и отстъпки по фирми и дати.</p></div>
+  <div><div class="eyebrow">Ценови листи</div><h1 class="page-title">Импортирани цени</h1><p class="page-subtitle">Преглед на входните ценови параметри, маржове и отстъпки по фирми и дати.</p></div>
   <div class="action-group"><a class="btn btn-success" href="{% url 'upload' %}"><i class="bi bi-cloud-arrow-up me-1"></i>Импортирай цени</a></div>
 </div>
 
 <div class="row g-3 mb-4">
   <div class="col-sm-4"><div class="surface metric-card"><div class="metric-label">Намерени записи</div><div class="metric-value" id="price-found-count">{{ filtered_count }}</div><div class="metric-meta">според избраните филтри</div></div></div>
   <div class="col-sm-4"><div class="surface metric-card"><div class="metric-label">Продукти</div><div class="metric-value" id="price-product-count">{{ product_count }}</div><div class="metric-meta">различни горива в резултатите</div></div></div>
-  <div class="col-sm-4"><div class="surface metric-card"><div class="metric-label">Последна дата</div><div class="metric-value fs-3" id="price-latest-date">{% if latest_date %}{{ latest_date|date:'d.m.Y' }}{% else %}—{% endif %}</div><div class="metric-meta">най-новата импортната цена</div></div></div>
+  <div class="col-sm-4"><div class="surface metric-card"><div class="metric-label">Последна дата</div><div class="metric-value fs-3" id="price-latest-date">{% if latest_date %}{{ latest_date|date:'d.m.Y' }}{% else %}—{% endif %}</div><div class="metric-meta">най-новата импортирана цена</div></div></div>
 </div>
 
-<div class="alert alert-light border d-flex align-items-start gap-2 mb-4">
-  <i class="bi bi-info-circle text-primary mt-1" aria-hidden="true"></i>
-  <div>
-    <strong>Ценова схема:</strong>
-    <span class="text-muted">ЕКО цена към GTA се взема от ЕКО ЦЕНА. Реалната стойност „GTA към клиента“ се изчислява при конкретната транзакция: <strong>ЕКО ЦЕНА + МАРЖ</strong>, <strong>ЕКО <i class="bi bi-fuel-pump-fill mx-1" aria-hidden="true"></i> − ОТСТЪПКА</strong> или <strong>КРАЙНА ЦЕНА</strong>.</span>
+<section class="pricing-guide surface mb-4" aria-labelledby="pricing-guide-title">
+  <div class="pricing-guide-head">
+    <div class="pricing-guide-head-icon" aria-hidden="true"><i class="bi bi-diagram-3"></i></div>
+    <div>
+      <div class="eyebrow">Ценова логика и източници</div>
+      <h2 class="pricing-guide-title" id="pricing-guide-title">Как се формира цената към клиента</h2>
+      <p>Данните идват от два различни файла. Цената на колонка е част от конкретното зареждане, а договорените параметри за фирмата идват от ценовата листа.</p>
+    </div>
   </div>
-</div>
+
+  <div class="pricing-source-grid">
+    <article class="pricing-source-card pricing-source-card--transaction">
+      <div class="pricing-source-icon" aria-hidden="true"><i class="bi bi-receipt"></i></div>
+      <div>
+        <span class="pricing-source-kicker">Източник 1</span>
+        <h3>Транзакционен файл <small>зареждания</small></h3>
+        <p>Всеки ред е реално зареждане на конкретна дата. От него системата взема <strong>ЕКО цена на колонка</strong> от поле <code>FinPr</code>.</p>
+        <div class="pricing-field-list">
+          <span><i class="bi bi-calendar3"></i> Date</span>
+          <span><i class="bi bi-fuel-pump"></i> Material</span>
+          <span><i class="bi bi-droplet"></i> Bill.qty</span>
+          <span class="is-key"><i class="bi bi-cash-coin"></i> FinPr</span>
+        </div>
+        <div class="pricing-source-note"><i class="bi bi-info-circle"></i> За една и съща дата и продукт може да има различен FinPr, ако зарежданията са на различни ЕКО обекти.</div>
+      </div>
+    </article>
+
+    <article class="pricing-source-card pricing-source-card--price">
+      <div class="pricing-source-icon" aria-hidden="true"><i class="bi bi-file-earmark-spreadsheet"></i></div>
+      <div>
+        <span class="pricing-source-kicker">Източник 2</span>
+        <h3>Ценови файл <small>ценова листа</small></h3>
+        <p>Тук са договорените параметри за фирмата и продукта, които участват в изчисляването на цената към клиента.</p>
+        <div class="pricing-field-list">
+          <span class="is-key">ЕКО ЦЕНА</span>
+          <span>МАРЖ</span>
+          <span>ОТСТЪПКА</span>
+          <span>КРАЙНА ЦЕНА</span>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <div class="pricing-rules">
+    <div class="pricing-rules-heading">
+      <div><strong>GTA към клиента</strong><span>Системата прилага правилата в този ред</span></div>
+      <span class="pricing-priority-badge"><i class="bi bi-list-ol"></i> Приоритет</span>
+    </div>
+
+    <div class="pricing-rule-grid">
+      <article class="pricing-rule-card">
+        <span class="pricing-rule-number">1</span>
+        <div class="pricing-rule-copy">
+          <span class="pricing-rule-condition">Ако има зададен марж</span>
+          <strong>ЕКО ЦЕНА <i class="bi bi-plus-lg"></i> МАРЖ</strong>
+          <small>ЕКО ЦЕНА и МАРЖ идват от ценовия файл.</small>
+        </div>
+      </article>
+
+      <article class="pricing-rule-card">
+        <span class="pricing-rule-number">2</span>
+        <div class="pricing-rule-copy">
+          <span class="pricing-rule-condition">Ако няма марж, но има отстъпка</span>
+          <strong>ЕКО <i class="bi bi-fuel-pump-fill" aria-hidden="true"></i> <i class="bi bi-dash-lg"></i> ОТСТЪПКА</strong>
+          <small>ЕКО цена на колонка = <code>FinPr</code> от конкретната транзакция; ОТСТЪПКА идва от ценовия файл.</small>
+        </div>
+      </article>
+
+      <article class="pricing-rule-card">
+        <span class="pricing-rule-number">3</span>
+        <div class="pricing-rule-copy">
+          <span class="pricing-rule-condition">Ако няма марж и отстъпка</span>
+          <strong>КРАЙНА ЦЕНА</strong>
+          <small>Използва се договорената КРАЙНА ЦЕНА от ценовия файл.</small>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <div class="pricing-guide-foot">
+    <i class="bi bi-shield-check" aria-hidden="true"></i>
+    <span><strong>Важно:</strong> „ЕКО цена на колонка“ се показва само при конкретните транзакции, защото само там знаем точно на кой ред и на каква цена е извършено зареждането.</span>
+  </div>
+</section>
 
 <section class="surface">
   <div class="surface-header">
@@ -40,7 +117,7 @@
     </form>
   </div>
   <div id="price-results"><div class="table-responsive">
-    <table class="table table-hover align-middle">
+    <table class="table table-hover align-middle price-list-table">
       <thead><tr><th class="text-center" style="width:64px">№</th><th>Дата</th><th>Фирма</th><th>Продукт</th><th class="currency text-nowrap">ЕКО цена към GTA<div class="small fw-normal text-muted">ЕКО ЦЕНА</div></th><th class="currency">Марж</th><th class="currency">Отстъпка</th><th class="text-nowrap">Правило GTA → клиент</th><th class="currency text-nowrap">Крайна цена от листата<div class="small fw-normal text-muted">КРАЙНА ЦЕНА</div></th></tr></thead>
       <tbody>
       {% for price in page_obj %}
