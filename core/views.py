@@ -385,31 +385,6 @@ def price_list(request):
     paginator = Paginator(prices, 100)
     page_obj = paginator.get_page(request.GET.get('page'))
 
-    # FinPr belongs to the transaction file, not the price list.  Attach the
-    # distinct pump prices that exist for the exact price-list date/product so
-    # /prices/ can show the real column price without inventing a fallback.
-    page_prices = list(page_obj.object_list)
-    page_obj.object_list = page_prices
-    price_keys = {
-        (price.date, normalize_text(price.product))
-        for price in page_prices
-    }
-    column_price_map = {}
-    if price_keys:
-        dates = {price_date for price_date, _ in price_keys}
-        transactions = Transaction.objects.filter(date__in=dates).values_list(
-            'date', 'material', 'price'
-        )
-        for transaction_date, material, transaction_price in transactions.iterator():
-            key = (transaction_date, normalize_text(material))
-            if key not in price_keys:
-                continue
-            column_price_map.setdefault(key, set()).add(transaction_price)
-
-    for price in page_prices:
-        key = (price.date, normalize_text(price.product))
-        price.column_prices = sorted(column_price_map.get(key, set()))
-
     query_params = request.GET.copy()
     query_params.pop('page', None)
 
