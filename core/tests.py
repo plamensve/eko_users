@@ -8,7 +8,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import Card, Company, Price, Transaction
+from .models import AuditLog, Card, Company, Price, Transaction
 from .services import calculate_pricing
 from .utils import ImportResult, get_company_report_data, get_invoice_period, get_unknown_report_data, relink_data
 
@@ -164,7 +164,7 @@ class AccessTests(TestCase):
         self.assertContains(chains, "img/logos/himoil-icon.png")
         self.assertContains(home, "img/logos/gta-original-diamond.svg")
         self.assertContains(chains, 'width="78" height="78"', count=4)
-        self.assertContains(chains, "app.css?v=20261003-clean-sidebar-20")
+        self.assertContains(chains, "app.css?v=20261003-audit-logs-21")
         self.assertContains(chains, f'href="{reverse("index")}"')
 
     def test_login_redirects_to_gta_home(self):
@@ -176,6 +176,79 @@ class AccessTests(TestCase):
         user = get_user_model().objects.create_user(username="operator2", password="safe-test-password")
         self.client.force_login(user)
         self.assertEqual(self.client.get(reverse("relink_data")).status_code, 405)
+
+
+class AuditLogTests(TestCase):
+    def setUp(self):
+        self.staff = get_user_model().objects.create_user(
+            username="admin-audit",
+            password="safe-test-password",
+            is_staff=True,
+        )
+        self.user = get_user_model().objects.create_user(
+            username="regular-audit",
+            password="safe-test-password",
+        )
+
+    def test_logs_link_is_only_visible_to_staff(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("home"))
+        self.assertNotContains(response, f'href="{reverse("audit_logs")}"')
+
+        self.client.force_login(self.staff)
+        response = self.client.get(reverse("home"))
+        self.assertContains(response, f'href="{reverse("audit_logs")}"')
+        self.assertContains(response, ">Логове</a>")
+
+    def test_logs_page_requires_staff(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("audit_logs"))
+        self.assertEqual(response.status_code, 403)
+
+        self.client.force_login(self.staff)
+        response = self.client.get(reverse("audit_logs"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Системни логове")
+        self.assertContains(response, "Не се записват пароли")
+
+    def test_successful_login_is_recorded(self):
+        AuditLog.objects.all().delete()
+        response = self.client.post(reverse("login"), {
+            "username": "regular-audit",
+            "password": "safe-test-password",
+        })
+        self.assertEqual(response.status_code, 302)
+        event = AuditLog.objects.get(action=AuditLog.Action.LOGIN)
+        self.assertEqual(event.username, "regular-audit")
+        self.assertEqual(event.description, "Вход в системата")
+
+    def test_failed_login_is_recorded_without_password(self):
+        AuditLog.objects.all().delete()
+        self.client.post(reverse("login"), {
+            "username": "regular-audit",
+            "password": "definitely-wrong-password",
+        })
+        event = AuditLog.objects.get(action=AuditLog.Action.LOGIN_FAILED)
+        self.assertEqual(event.username, "regular-audit")
+        serialized = " ".join([
+            event.description,
+            event.path,
+            event.user_agent,
+            str(event.metadata),
+        ])
+        self.assertNotIn("definitely-wrong-password", serialized)
+
+    def test_authenticated_page_view_is_recorded(self):
+        self.client.force_login(self.user)
+        AuditLog.objects.all().delete()
+        response = self.client.get(reverse("index"))
+        self.assertEqual(response.status_code, 200)
+        event = AuditLog.objects.get(action=AuditLog.Action.VIEW)
+        self.assertEqual(event.username, "regular-audit")
+        self.assertEqual(event.url_name, "index")
+        self.assertEqual(event.description, "Преглед на ЕКО таблото")
+
+
 
 
 class CompanySearchTests(TestCase):

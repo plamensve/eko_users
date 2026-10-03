@@ -38,6 +38,7 @@ urlpatterns = [
     path('cards/<int:card_id>/delete/', views.card_delete, name='card_delete'),
     
     # Profile
+    path('logs/', views.audit_logs, name='audit_logs'),
     path('profile/', views.profile, name='profile'),
     path('profile/password/', views.change_password, name='change_password'),
     path('relink-data/', views.relink_data_view, name='relink_data'),

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 from .services import fuel_product_kind
@@ -82,4 +83,51 @@ class Transaction(models.Model):
         indexes = [
             models.Index(fields=["card_number"], name="transaction_card_idx"),
             models.Index(fields=["date"], name="transaction_date_idx"),
+        ]
+
+
+class AuditLog(models.Model):
+    class Action(models.TextChoices):
+        LOGIN = "login", "Вход"
+        LOGIN_FAILED = "login_failed", "Неуспешен вход"
+        LOGOUT = "logout", "Изход"
+        VIEW = "view", "Преглед"
+        IMPORT = "import", "Импорт"
+        EXPORT = "export", "Експорт"
+        CREATE = "create", "Създаване"
+        UPDATE = "update", "Промяна"
+        DELETE = "delete", "Изтриване"
+        ACTION = "action", "Действие"
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="audit_events",
+        verbose_name="Потребител",
+    )
+    username = models.CharField(max_length=150, blank=True, verbose_name="Потребител (snapshot)")
+    action = models.CharField(max_length=32, choices=Action.choices, db_index=True, verbose_name="Действие")
+    description = models.CharField(max_length=255, blank=True, verbose_name="Описание")
+    method = models.CharField(max_length=10, blank=True, verbose_name="HTTP метод")
+    path = models.CharField(max_length=500, blank=True, verbose_name="Път")
+    url_name = models.CharField(max_length=120, blank=True, verbose_name="URL име")
+    status_code = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name="HTTP статус")
+    ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name="IP адрес")
+    user_agent = models.CharField(max_length=500, blank=True, verbose_name="Браузър / устройство")
+    metadata = models.JSONField(default=dict, blank=True, verbose_name="Допълнителни данни")
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name="Дата и час")
+
+    def __str__(self):
+        timestamp = self.created_at.strftime("%Y-%m-%d %H:%M:%S") if self.created_at else "—"
+        return f"{timestamp} · {self.username or 'Anonymous'} · {self.get_action_display()}"
+
+    class Meta:
+        verbose_name = "Системен лог"
+        verbose_name_plural = "Системни логове"
+        ordering = ["-created_at", "-id"]
+        indexes = [
+            models.Index(fields=["action", "created_at"], name="audit_action_date_idx"),
+            models.Index(fields=["user", "created_at"], name="audit_user_date_idx"),
         ]

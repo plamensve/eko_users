@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% block title %}Системни логове · GTA Manager{% endblock %}
+
+{% block content %}
+<div class="audit-page">
+  <div class="page-heading">
+    <div>
+      <div class="eyebrow">Администрация</div>
+      <h1 class="page-title">Системни логове</h1>
+      <p class="page-subtitle">История на входовете и действията на потребителите в GTA Manager.</p>
+    </div>
+    <span class="audit-security-note"><i class="bi bi-shield-lock"></i> Само за администратори</span>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+      <div class="surface metric-card audit-metric">
+        <div class="metric-label">Намерени събития</div>
+        <div class="metric-value">{{ filtered_count }}</div>
+        <div class="metric-meta">според текущите филтри</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="surface metric-card audit-metric audit-metric--login">
+        <div class="metric-label">Входове днес</div>
+        <div class="metric-value">{{ today_logins }}</div>
+        <div class="metric-meta">успешни автентикации</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="surface metric-card audit-metric audit-metric--users">
+        <div class="metric-label">Активни потребители</div>
+        <div class="metric-value">{{ today_active_users }}</div>
+        <div class="metric-meta">с активност днес</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="surface metric-card audit-metric {% if today_failed_logins %}audit-metric--warning{% endif %}">
+        <div class="metric-label">Неуспешни входове</div>
+        <div class="metric-value">{{ today_failed_logins }}</div>
+        <div class="metric-meta">опити за вход днес</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="audit-privacy-banner mb-4">
+    <span class="audit-privacy-icon"><i class="bi bi-eye-slash"></i></span>
+    <div>
+      <strong>Какво се записва</strong>
+      <p>Потребител, час, IP адрес, страница/действие, HTTP статус и браузър. <strong>Не се записват пароли или съдържанието на формите.</strong></p>
+    </div>
+  </div>
+
+  <section class="surface audit-log-surface">
+    <div class="surface-header">
+      <form method="get" class="row g-2 align-items-end audit-filter-form">
+        <div class="col-12 col-xl-3">
+          <label class="form-label small fw-semibold" for="audit-search">Търсене</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+            <input id="audit-search" class="form-control border-start-0" type="search" name="q" value="{{ search_query }}" placeholder="Потребител, IP, страница...">
+          </div>
+        </div>
+        <div class="col-sm-6 col-xl-2">
+          <label class="form-label small fw-semibold" for="audit-user">Потребител</label>
+          <select id="audit-user" class="form-select" name="user">
+            <option value="">Всички</option>
+            {% for item in users %}
+              <option value="{{ item.id }}" {% if selected_user == item.id|stringformat:"s" %}selected{% endif %}>{{ item.get_full_name|default:item.username }} · {{ item.username }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-sm-6 col-xl-2">
+          <label class="form-label small fw-semibold" for="audit-action">Действие</label>
+          <select id="audit-action" class="form-select" name="action">
+            <option value="">Всички действия</option>
+            {% for value, label in actions %}
+              <option value="{{ value }}" {% if selected_action == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-sm-5 col-xl-2">
+          <label class="form-label small fw-semibold" for="audit-date-from">От дата</label>
+          <input id="audit-date-from" class="form-control" type="date" name="date_from" value="{{ date_from }}">
+        </div>
+        <div class="col-sm-5 col-xl-2">
+          <label class="form-label small fw-semibold" for="audit-date-to">До дата</label>
+          <input id="audit-date-to" class="form-control" type="date" name="date_to" value="{{ date_to }}">
+        </div>
+        <div class="col-sm-2 col-xl-1 d-grid">
+          <button class="btn btn-primary" type="submit" title="Приложи филтрите"><i class="bi bi-funnel"></i></button>
+        </div>
+        {% if search_query or selected_user or selected_action or date_from or date_to %}
+          <div class="col-12"><a href="{% url 'audit_logs' %}" class="small text-decoration-none"><i class="bi bi-x-circle me-1"></i>Изчисти всички филтри</a></div>
+        {% endif %}
+      </form>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle audit-log-table">
+        <thead>
+          <tr>
+            <th>Дата и час</th>
+            <th>Потребител</th>
+            <th>Действие</th>
+            <th>Описание</th>
+            <th>Страница</th>
+            <th>Заявка</th>
+            <th>IP адрес</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in page_obj %}
+          <tr>
+            <td class="text-nowrap">
+              <strong>{{ log.created_at|date:"d.m.Y" }}</strong>
+              <div class="small text-muted">{{ log.created_at|date:"H:i:s" }}</div>
+            </td>
+            <td>
+              <div class="audit-user-cell">
+                <span class="audit-user-avatar">{{ log.username|default:"?"|slice:":1"|upper }}</span>
+                <span>
+                  <strong>{% if log.user %}{{ log.user.get_full_name|default:log.username }}{% else %}{{ log.username|default:"Anonymous" }}{% endif %}</strong>
+                  {% if log.user and log.user.get_full_name %}<small>{{ log.username }}</small>{% endif %}
+                </span>
+              </div>
+            </td>
+            <td><span class="audit-action-badge audit-action--{{ log.action }}">{{ log.get_action_display }}</span></td>
+            <td>
+              <strong class="audit-description">{{ log.description|default:"—" }}</strong>
+              {% if log.metadata.route %}<div class="small text-muted">Обект: {{ log.metadata.route }}</div>{% endif %}
+            </td>
+            <td><code class="audit-path">{{ log.path|default:"—" }}</code></td>
+            <td>
+              <span class="audit-method audit-method--{{ log.method|lower }}">{{ log.method|default:"—" }}</span>
+              {% if log.status_code %}
+                <span class="audit-status {% if log.status_code >= 400 %}audit-status--error{% elif log.status_code >= 300 %}audit-status--redirect{% else %}audit-status--ok{% endif %}">{{ log.status_code }}</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="text-nowrap">{{ log.ip_address|default:"—" }}</span>
+              {% if log.user_agent %}<div class="small text-muted audit-agent" title="{{ log.user_agent }}">{{ log.user_agent|truncatechars:38 }}</div>{% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7"><div class="empty-state"><i class="bi bi-journal-x fs-1"></i><h2 class="h5 mt-3">Няма намерени логове</h2><p>Променете филтрите или изчакайте нова активност в системата.</p></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="surface-header border-top border-bottom-0 d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <span class="small text-muted">Страница {{ page_obj.number }} от {{ page_obj.paginator.num_pages }}</span>
+      <nav aria-label="Страници със системни логове">
+        <ul class="pagination pagination-sm mb-0">
+          <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+            <a class="page-link" href="{% if page_obj.has_previous %}?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.previous_page_number }}{% else %}#{% endif %}">Назад</a>
+          </li>
+          <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+          <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+            <a class="page-link" href="{% if page_obj.has_next %}?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.next_page_number }}{% else %}#{% endif %}">Напред</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}
