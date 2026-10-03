@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
 from .forms import UploadFileForm, CompanyForm, CardForm
 from .utils import import_cards, import_prices, import_transactions, export_all_companies_zip, get_company_report_data, \
     export_single_company_zip, get_unknown_report_data, normalize_text, relink_data
@@ -540,7 +541,7 @@ def audit_logs(request):
         "today_logins": base_logs.filter(action=AuditLog.Action.LOGIN, created_at__date=today).count(),
         "today_failed_logins": base_logs.filter(action=AuditLog.Action.LOGIN_FAILED, created_at__date=today).count(),
         "today_active_users": base_logs.filter(created_at__date=today, user__isnull=False).values("user").distinct().count(),
-        "users": request.user.__class__.objects.filter(audit_events__isnull=False).distinct().order_by("username"),
+        "users": get_user_model().objects.filter(audit_events__isnull=False).distinct().order_by("username"),
         "actions": AuditLog.Action.choices,
         "selected_user": selected_user,
         "selected_action": selected_action,
