@@ -121,16 +121,7 @@
         <a class="{% if request.resolver_match.url_name == 'profile' or request.resolver_match.url_name == 'change_password' %}active{% endif %}" href="{% url 'profile' %}"><i class="bi bi-person-circle"></i><span>Моят профил</span></a>
       </nav>
     {% else %}
-      <div class="app-sidebar-head app-sidebar-module app-sidebar-module-brand">
-        <div class="app-sidebar-module-logo app-sidebar-module-logo--workspace">
-          <img src="{% static 'img/logos/card-fuel-module.svg' %}" width="38" height="38" alt="">
-        </div>
-        <div class="app-sidebar-module-copy">
-          <strong>Картови зареждания</strong>
-          <small>GTA MANAGER</small>
-        </div>
-      </div>
-      <nav class="app-sidebar-nav">
+      <nav class="app-sidebar-nav app-sidebar-nav--eko">
         <span class="app-sidebar-label">МОДУЛ</span>
         <a class="{% if request.resolver_match.url_name == 'index' %}active{% endif %}" href="{% url 'index' %}"><i class="bi bi-grid-1x2"></i><span>Табло</span></a>
         <a class="{% if request.resolver_match.url_name == 'upload' %}active{% endif %}" href="{% url 'upload' %}"><i class="bi bi-cloud-arrow-up"></i><span>Импорт</span></a>
