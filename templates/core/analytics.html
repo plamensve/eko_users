@@ -76,28 +76,6 @@
         box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
     }
 
-    .analytics-card {
-        border: none;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.07);
-        transition: all 0.2s ease;
-    }
-
-    .analytics-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.10);
-    }
-
-    .analytics-card .card-header {
-        font-weight: 600;
-    }
-
-    .analytics-value {
-        font-size: 2rem;
-        font-weight: 700;
-    }
-
     .company-table-card {
         border: none;
         border-radius: 16px;
@@ -148,7 +126,7 @@
 </style>
 
 
-<div class="mt-4">
+<div class="mt-4 analytics-page">
 
     <div class="analytics-header">
 
@@ -229,18 +207,19 @@
 
     <div class="row mt-4">
 
-        <div class="col-md-4 mb-3">
+        <div class="col-lg-4 mb-3">
 
-            <div class="card text-white bg-primary analytics-card h-100">
+            <div class="card analytics-card analytics-card--quantity h-100">
 
-                <div class="card-header">
-                    Общо количество
+                <div class="analytics-card-heading">
+                    <span>Общо количество</span>
+                    <span class="analytics-card-icon" aria-hidden="true"><i class="bi bi-fuel-pump"></i></span>
                 </div>
 
                 <div class="card-body">
 
                     <div class="analytics-value">
-                        {{ grand_total_qty|stringformat:".2f" }} л.
+                        {{ grand_total_qty|stringformat:".2f" }} <span class="analytics-unit">л.</span>
                     </div>
 
                     <p class="card-text mt-2 mb-0">
@@ -268,18 +247,19 @@
         </div>
 
 
-        <div class="col-md-4 mb-3">
+        <div class="col-lg-4 mb-3">
 
-            <div class="card text-white bg-success analytics-card h-100">
+            <div class="card analytics-card analytics-card--profit{% if grand_total_profit < 0 %} analytics-card--negative{% endif %} h-100">
 
-                <div class="card-header">
-                    Обща печалба
+                <div class="analytics-card-heading">
+                    <span>Обща печалба</span>
+                    <span class="analytics-card-icon" aria-hidden="true"><i class="bi {% if grand_total_profit < 0 %}bi-graph-down-arrow{% else %}bi-graph-up-arrow{% endif %}"></i></span>
                 </div>
 
                 <div class="card-body">
 
                     <div class="analytics-value">
-                        {{ grand_total_profit|stringformat:".2f" }} €
+                        {{ grand_total_profit|stringformat:".2f" }} <span class="analytics-unit">€</span>
                     </div>
 
                     <p class="card-text mt-2 mb-0">
@@ -307,18 +287,19 @@
         </div>
 
 
-        <div class="col-md-4 mb-3">
+        <div class="col-lg-4 mb-3">
 
-            <div class="card text-white bg-info analytics-card h-100">
+            <div class="card analytics-card analytics-card--turnover h-100">
 
-                <div class="card-header">
-                    Обща сума GTA
+                <div class="analytics-card-heading">
+                    <span>Обща сума GTA</span>
+                    <span class="analytics-card-icon" aria-hidden="true"><i class="bi bi-cash-stack"></i></span>
                 </div>
 
                 <div class="card-body">
 
                     <div class="analytics-value">
-                        {{ grand_total_gta|stringformat:".2f" }} €
+                        {{ grand_total_gta|stringformat:".2f" }} <span class="analytics-unit">€</span>
                     </div>
 
                     <p class="card-text mt-2 mb-0">
@@ -350,9 +331,10 @@
 
     <div class="card mt-4 company-table-card">
 
-        <div class="card-header bg-dark text-white d-flex flex-wrap justify-content-between align-items-center">
+        <div class="card-header analytics-company-heading d-flex flex-wrap justify-content-between align-items-center gap-2">
 
             <h5 class="mb-0">
+                <i class="bi bi-buildings me-2" aria-hidden="true"></i>
                 Потребление по фирми
             </h5>
 
@@ -443,7 +425,7 @@
                                         >
                                             Unknown
                                         </a>
-                                        <span class="badge badge-secondary ml-2">Несвързани карти</span>
+                                        <span class="badge text-bg-secondary ms-2">Несвързани карти</span>
                                     {% else %}
                                         <a
                                             href="{% url 'company_transactions' item.company_id %}"
@@ -453,7 +435,7 @@
                                         </a>
 
                                         {% if item.is_twice_monthly %}
-                                            <span class="badge badge-warning ml-2">
+                                            <span class="badge text-bg-warning ms-2">
                                                 2× месечно
                                             </span>
                                         {% endif %}

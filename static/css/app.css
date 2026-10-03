@@ -2334,3 +2334,105 @@ body{font-size:15px!important}
     width:100%;
   }
 }
+
+/* Analytics: explicit surface/text pairs prevent global card header conflicts. */
+.analytics-page .analytics-card{
+  --analytics-accent:#246a9a;
+  --analytics-tint:#edf5fd;
+  --analytics-icon-bg:#dfedf9;
+  position:relative;
+  background:linear-gradient(135deg,#fff 35%,var(--analytics-tint))!important;
+  color:#18344b;
+  border:1px solid #d7e3ec!important;
+  border-top:4px solid var(--analytics-accent)!important;
+  border-radius:14px!important;
+  box-shadow:0 5px 18px rgba(25,48,71,.06)!important;
+  transition:box-shadow .2s ease,border-color .2s ease;
+}
+.analytics-page .analytics-card--profit{
+  --analytics-accent:#217252;
+  --analytics-tint:#eef8f3;
+  --analytics-icon-bg:#dff1e7;
+}
+.analytics-page .analytics-card--turnover{
+  --analytics-accent:#146e83;
+  --analytics-tint:#edf8fa;
+  --analytics-icon-bg:#dcf0f4;
+}
+.analytics-page .analytics-card--negative{
+  --analytics-accent:#ad3434;
+  --analytics-tint:#fff2f2;
+  --analytics-icon-bg:#fbe3e3;
+}
+.analytics-page .analytics-card:hover{
+  box-shadow:0 8px 24px rgba(25,48,71,.1)!important;
+}
+.analytics-page .analytics-card-heading{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:18px 20px 0;
+  color:#344b60;
+  font-size:.95rem;
+  font-weight:700;
+}
+.analytics-page .analytics-card-icon{
+  display:grid;
+  place-items:center;
+  flex:0 0 44px;
+  width:44px;
+  height:44px;
+  border-radius:12px;
+  background:var(--analytics-icon-bg);
+  color:var(--analytics-accent);
+  font-size:1.3rem;
+}
+.analytics-page .analytics-card .card-body{padding:12px 20px 22px}
+.analytics-page .analytics-value{
+  color:#18344b;
+  font-size:clamp(1.65rem,2.25vw,2.35rem)!important;
+  line-height:1.25;
+  font-weight:800;
+  letter-spacing:-.025em;
+  font-variant-numeric:tabular-nums;
+  overflow-wrap:anywhere;
+}
+.analytics-page .analytics-card--profit .analytics-value{color:var(--analytics-accent)}
+.analytics-page .analytics-unit{
+  color:inherit;
+  font-size:.65em;
+  font-weight:650;
+  white-space:nowrap;
+}
+.analytics-page .analytics-card .card-text{
+  color:#536579;
+  font-size:.85rem;
+  line-height:1.6;
+}
+.analytics-page .analytics-company-heading{
+  background:#f0f5fa!important;
+  color:#18344b;
+  padding:18px 20px!important;
+}
+.analytics-page .analytics-company-heading h5{
+  color:#18344b!important;
+  font-size:1.08rem;
+  font-weight:750;
+}
+.analytics-page .analytics-company-heading h5 i{color:#246a9a}
+.analytics-page .period-badge{
+  background:#e0ecf7;
+  border:1px solid #c5d9eb;
+  color:#28577b;
+  font-size:.8rem;
+  font-weight:700;
+}
+@media(max-width:575.98px){
+  .analytics-page .analytics-card-heading{padding:16px 16px 0}
+  .analytics-page .analytics-card .card-body{padding:12px 16px 18px}
+  .analytics-page .analytics-company-heading{padding:16px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .analytics-page .analytics-card{transition:none}
+}
