@@ -120,7 +120,8 @@ class AuditLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name="Дата и час")
 
     def __str__(self):
-        return f"{self.created_at:%Y-%m-%d %H:%M:%S} · {self.username or 'Anonymous'} · {self.get_action_display()}"
+        timestamp = self.created_at.strftime("%Y-%m-%d %H:%M:%S") if self.created_at else "—"
+        return f"{timestamp} · {self.username or 'Anonymous'} · {self.get_action_display()}"
 
     class Meta:
         verbose_name = "Системен лог"
