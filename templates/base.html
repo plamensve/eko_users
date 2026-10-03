@@ -99,7 +99,7 @@
 
   {% if user.is_authenticated and request.resolver_match.namespace != 'tasks' %}
   <aside class="app-sidebar" id="appSidebar" aria-label="Основна навигация">
-    {% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'fuel_card_chains' or request.resolver_match.url_name == 'profile' or request.resolver_match.url_name == 'change_password' %}
+    {% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'fuel_card_chains' or request.resolver_match.url_name == 'profile' or request.resolver_match.url_name == 'change_password' or request.resolver_match.url_name == 'audit_logs' %}
       {% if request.resolver_match.url_name == 'fuel_card_chains' %}
       <div class="app-sidebar-head app-sidebar-module app-sidebar-module-brand">
         <div class="app-sidebar-module-logo app-sidebar-module-logo--workspace">
