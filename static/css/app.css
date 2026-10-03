@@ -3116,7 +3116,7 @@ body{font-size:15px!important}
 
 
 /* =========================================================
-   Desktop collapsible sidebar
+   Desktop collapsible sidebar — topbar console control
    ========================================================= */
 @media(min-width:992px){
   .app-sidebar{
@@ -3128,36 +3128,51 @@ body{font-size:15px!important}
     transition:margin-left .22s ease!important;
   }
 
-  .app-sidebar-collapse{
-    position:fixed;
-    z-index:1036;
-    top:calc(var(--app-header-height) + 18px);
-    left:calc(var(--app-sidebar-width) - 15px);
+  .app-sidebar-collapse--topbar{
+    position:relative;
+    flex:0 0 36px;
     place-items:center;
-    width:30px;
-    height:34px;
+    width:36px;
+    height:36px;
     padding:0;
-    color:#dbe8ee;
-    background:#21475b;
-    border:1px solid #3b657a;
-    border-radius:0 7px 7px 0;
-    box-shadow:2px 2px 8px rgba(6,22,31,.16);
-    transition:left .22s ease, background .15s ease, border-color .15s ease, color .15s ease;
+    margin-left:-2px;
+    color:#c6d9e2;
+    background:rgba(255,255,255,.035);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:7px;
+    box-shadow:inset 0 1px rgba(255,255,255,.025);
+    transition:background .15s ease, border-color .15s ease, color .15s ease, transform .15s ease;
   }
 
-  .app-sidebar-collapse:hover{
+  .app-sidebar-collapse--topbar::after{
+    content:"";
+    position:absolute;
+    right:-7px;
+    top:50%;
+    width:1px;
+    height:24px;
+    background:rgba(255,255,255,.10);
+    transform:translateY(-50%);
+    pointer-events:none;
+  }
+
+  .app-sidebar-collapse--topbar:hover{
     color:#fff;
-    background:#2b5a70;
-    border-color:#4f7b8f;
+    background:rgba(255,255,255,.095);
+    border-color:rgba(255,255,255,.24);
   }
 
-  .app-sidebar-collapse:focus-visible{
-    outline:2px solid rgba(42,167,200,.55);
+  .app-sidebar-collapse--topbar:active{
+    transform:translateY(1px);
+  }
+
+  .app-sidebar-collapse--topbar:focus-visible{
+    outline:2px solid rgba(42,167,200,.65);
     outline-offset:2px;
   }
 
-  .app-sidebar-collapse i{
-    font-size:.82rem;
+  .app-sidebar-collapse--topbar i{
+    font-size:1rem;
     line-height:1;
   }
 
@@ -3170,7 +3185,9 @@ body{font-size:15px!important}
     margin-left:0!important;
   }
 
-  body.sidebar-collapsed .app-sidebar-collapse{
-    left:0;
+  body.sidebar-collapsed .app-sidebar-collapse--topbar{
+    color:#e8f4f8;
+    background:rgba(42,167,200,.13);
+    border-color:rgba(70,177,205,.36);
   }
 }
