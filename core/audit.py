@@ -1,6 +1,17 @@
-from django.db import OperationalError, ProgrammingError
+import ipaddress
+
+from django.db import DatabaseError
 
 from .models import AuditLog
+
+
+def _valid_ip(value):
+    if not value:
+        return None
+    try:
+        return str(ipaddress.ip_address(str(value).strip()))
+    except ValueError:
+        return None
 
 
 def get_client_ip(request):
@@ -8,8 +19,10 @@ def get_client_ip(request):
         return None
     forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
     if forwarded:
-        return forwarded.split(",")[0].strip() or None
-    return request.META.get("REMOTE_ADDR") or None
+        forwarded_ip = _valid_ip(forwarded.split(",")[0])
+        if forwarded_ip:
+            return forwarded_ip
+    return _valid_ip(request.META.get("REMOTE_ADDR"))
 
 
 def get_user_agent(request):
@@ -55,5 +68,5 @@ def log_audit_event(
             user_agent=get_user_agent(request),
             metadata=metadata or {},
         )
-    except (OperationalError, ProgrammingError):
+    except (DatabaseError, ValueError, TypeError):
         return None
