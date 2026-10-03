@@ -19,12 +19,16 @@ class PricingRulesTests(TestCase):
         result = calculate_pricing(quantity="10", transaction_price="1.600", product="DIESEL", price_record=record)
         self.assertEqual(result.eko_base_price, Decimal("1.456"))
         self.assertEqual(result.gta_price, Decimal("1.486"))
+        self.assertEqual(result.pricing_method, "margin")
+        self.assertEqual(result.pricing_adjustment, Decimal("0.030"))
         self.assertEqual(result.profit, Decimal("0.300000"))
 
     def test_discount_uses_transaction_price(self):
         record = SimpleNamespace(margin=0, discount=Decimal("0.050"), final_price=Decimal("1.500"), eko_price=Decimal("1.480"))
         result = calculate_pricing(quantity="20", transaction_price="1.600", product="DIESEL", price_record=record)
         self.assertEqual(result.gta_price, Decimal("1.550"))
+        self.assertEqual(result.pricing_method, "discount")
+        self.assertEqual(result.pricing_adjustment, Decimal("0.050"))
         self.assertEqual(result.profit, Decimal("1.40"))
 
     def test_lpg_uses_reference_profit_rule_for_mixed_alphabet_name(self):
@@ -85,6 +89,8 @@ class ReportingTests(TestCase):
         self.assertEqual(rows[0]["eko_price"], Decimal("1.600"))
         self.assertEqual(rows[0]["eko_base_price"], Decimal("1.420"))
         self.assertEqual(rows[0]["gta_price"], Decimal("1.450"))
+        self.assertEqual(rows[0]["pricing_method"], "margin")
+        self.assertEqual(rows[0]["pricing_adjustment"], Decimal("0.030"))
         self.assertEqual(rows[0]["eko_base_total"], Decimal("14.200"))
         self.assertEqual(rows[1]["gta_price"], Decimal("1.550"))
 
@@ -156,7 +162,7 @@ class AccessTests(TestCase):
         self.assertContains(chains, "img/logos/himoil-icon.png")
         self.assertContains(home, "img/logos/gta-original-diamond.svg")
         self.assertContains(chains, 'width="78" height="78"', count=4)
-        self.assertContains(chains, "app.css?v=20261003-pricing-guide-18")
+        self.assertContains(chains, "app.css?v=20261003-pricing-method-19")
         self.assertContains(chains, f'href="{reverse("index")}"')
 
     def test_login_redirects_to_gta_home(self):
@@ -194,6 +200,59 @@ class CompanySearchTests(TestCase):
         self.assertContains(response, "ЕКО цена към GTA")
         self.assertContains(response, "GTA към клиента")
         self.assertContains(response, "ЕКО ЦЕНА")
+
+    def test_company_report_shows_applied_margin_and_discount_per_transaction(self):
+        card = Card.objects.create(card_number="RULE-CARD", company=self.auto_petkov, vehicle="CA0001AA")
+        Price.objects.create(
+            date=date(2026, 9, 1),
+            company=self.auto_petkov,
+            product="DIESEL",
+            eko_price="1.5000",
+            margin="0.0300",
+            discount="0",
+            final_price="1.5300",
+        )
+        Price.objects.create(
+            date=date(2026, 9, 1),
+            company=self.auto_petkov,
+            product="95 ECONOMY UNLEADED",
+            eko_price="1.4000",
+            margin="0",
+            discount="0.0400",
+            final_price="1.3600",
+        )
+        Transaction.objects.create(
+            plant="1",
+            card_number=card.card_number,
+            card=card,
+            material="DIESEL",
+            date=date(2026, 9, 2),
+            bill_qty="10",
+            price="1.6000",
+            amount="16.00",
+        )
+        Transaction.objects.create(
+            plant="2",
+            card_number=card.card_number,
+            card=card,
+            material="95 ECONOMY UNLEADED",
+            date=date(2026, 9, 2),
+            bill_qty="10",
+            price="1.5000",
+            amount="15.00",
+        )
+
+        response = self.client.get(reverse("company_transactions", args=[self.auto_petkov.id]), {"report": "full"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Прилага се")
+        self.assertContains(response, "Марж / Отстъпка")
+        self.assertContains(response, "pricing-method-badge--margin")
+        self.assertContains(response, ">Марж</span>")
+        self.assertContains(response, "0.030 €")
+        self.assertContains(response, "pricing-method-badge--discount")
+        self.assertContains(response, ">Отстъпка</span>")
+        self.assertContains(response, "0.040 €")
 
     def test_suggestions_match_company_name_from_the_beginning(self):
         response = self.client.get(reverse("company_search_suggestions"), {"term": "авт"})

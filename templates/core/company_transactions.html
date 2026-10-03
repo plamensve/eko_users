@@ -80,6 +80,8 @@
           <th class="number">Литри</th>
           <th class="currency text-nowrap">ЕКО цена на колонка<div class="small fw-normal text-muted">FinPr</div></th>
           <th class="currency text-nowrap">ЕКО цена към GTA<div class="small fw-normal text-muted">ЕКО ЦЕНА</div></th>
+          <th class="text-nowrap">Прилага се<div class="small fw-normal text-muted">Ценово правило</div></th>
+          <th class="currency text-nowrap">Марж / Отстъпка<div class="small fw-normal text-muted">Приложена стойност</div></th>
           <th class="currency text-nowrap">GTA към клиента</th>
           <th class="currency text-nowrap">Сума GTA към клиента</th>
           <th class="currency profit-column"><span class="profit-column-heading"><i class="bi bi-graph-up-arrow"></i>Печалба</span></th>
@@ -95,12 +97,32 @@
           <td class="number">{{ t.qty|stringformat:'.2f' }}</td>
           <td class="currency">{{ t.eko_price|stringformat:'.3f' }} €</td>
           <td class="currency">{{ t.eko_base_price|stringformat:'.3f' }} €</td>
+          <td>
+            {% if not t.has_price %}
+              <span class="pricing-method-badge pricing-method-badge--missing"><i class="bi bi-exclamation-triangle"></i>Без ценова листа</span>
+            {% elif t.pricing_method == 'margin' %}
+              <span class="pricing-method-badge pricing-method-badge--margin"><i class="bi bi-plus-circle"></i>Марж</span>
+            {% elif t.pricing_method == 'discount' %}
+              <span class="pricing-method-badge pricing-method-badge--discount"><i class="bi bi-dash-circle"></i>Отстъпка</span>
+            {% elif t.pricing_method == 'final_price' %}
+              <span class="pricing-method-badge pricing-method-badge--final"><i class="bi bi-tag"></i>Крайна цена</span>
+            {% else %}
+              <span class="pricing-method-badge pricing-method-badge--fallback"><i class="bi bi-fuel-pump"></i>Цена на колонка</span>
+            {% endif %}
+          </td>
+          <td class="currency pricing-adjustment-value">
+            {% if t.pricing_method == 'margin' or t.pricing_method == 'discount' %}
+              {{ t.pricing_adjustment|stringformat:'.3f' }} €
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
           <td class="currency fw-bold text-primary">{{ t.gta_price|stringformat:'.3f' }} €</td>
           <td class="currency fw-bold">{{ t.gta_total|stringformat:'.3f' }} €</td>
           <td class="currency profit-column {% if t.profit < 0 %}profit-negative{% else %}profit-positive{% endif %}">{{ t.profit|stringformat:'.2f' }} €</td>
         </tr>
       {% empty %}
-        <tr><td colspan="10"><div class="empty-state">Няма транзакции за избрания период.</div></td></tr>
+        <tr><td colspan="12"><div class="empty-state">Няма транзакции за избрания период.</div></td></tr>
       {% endfor %}
       </tbody>
       {% if transactions %}
@@ -108,6 +130,8 @@
         <tr class="fw-bold">
           <td colspan="4" class="text-end">ОБЩО</td>
           <td class="number">{{ total_qty|stringformat:'.2f' }}</td>
+          <td></td>
+          <td></td>
           <td></td>
           <td></td>
           <td></td>
