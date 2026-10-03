@@ -1775,7 +1775,16 @@ body{padding-bottom:0!important}
 html{font-size:16.5px!important}
 body{font-size:15px!important}
 .table{font-size:.80rem!important}
-.table thead th{font-size:.66rem!important}
+.table thead th{
+  font-size:.66rem!important;
+  vertical-align:top!important;
+  line-height:1.2!important;
+}
+.table thead th > .small{
+  display:block;
+  margin-top:.28rem;
+  line-height:1.1!important;
+}
 .btn{font-size:.79rem!important}
 .form-control,
 .form-select,
