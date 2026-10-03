@@ -97,14 +97,14 @@ class AuditLogMiddleware:
                 action = AuditLog.Action.DELETE
             elif url_name.endswith("_add"):
                 action = AuditLog.Action.CREATE
-            elif url_name.endswith("_edit") or url_name in {"change_password", "relink_data"}:
+            elif url_name.endswith("_edit") or url_name in {"change_password", "relink_data", "profile"}:
                 action = AuditLog.Action.UPDATE
             else:
                 action = AuditLog.Action.ACTION
         else:
             action = AuditLog.Action.VIEW
 
-        description = ACTION_LABELS.get(url_name)
+        description = ACTION_LABELS.get(url_name) if not getattr(match, "namespace", "") else None
         if not description:
             description = f"{'Преглед' if method == 'GET' else 'Действие'}: {view_name or path}"
 
