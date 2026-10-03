@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Card, Company, Price, Transaction
+from .models import AuditLog, Card, Company, Price, Transaction
 
 
 @admin.register(Company)
@@ -32,3 +32,21 @@ class TransactionAdmin(admin.ModelAdmin):
     list_filter = ("date", "material")
 
 # Register your models here.
+
+
+@admin.register(AuditLog)
+class AuditLogAdmin(admin.ModelAdmin):
+    list_display = ("created_at", "username", "action", "description", "status_code", "ip_address")
+    search_fields = ("username", "description", "path", "ip_address")
+    list_filter = ("action", "created_at")
+    readonly_fields = (
+        "user", "username", "action", "description", "method", "path", "url_name",
+        "status_code", "ip_address", "user_agent", "metadata", "created_at",
+    )
+    ordering = ("-created_at", "-id")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
