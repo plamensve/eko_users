@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <link href="{% static 'css/app.css' %}?v=20261003-audit-logs-21" rel="stylesheet">
+  <link href="{% static 'css/app.css' %}?v=20261003-collapsible-sidebar-22" rel="stylesheet">
   {% block extra_head %}{% endblock %}
 </head>
 <body class="{% if request.resolver_match.namespace == 'tasks' %}app-mode-tasks{% elif request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'fuel_card_chains' or request.resolver_match.url_name == 'profile' or request.resolver_match.url_name == 'change_password' or request.resolver_match.url_name == 'audit_logs' %}app-mode-main{% else %}app-mode-eko{% endif %}{% if user.is_authenticated and request.resolver_match.namespace != 'tasks' %} has-app-sidebar{% endif %} {% block body_class %}{% endblock %}">
@@ -146,6 +146,9 @@
       <span><strong>System ready</strong><small>GTA Manager 2026</small></span>
     </div>
   </aside>
+  <button class="app-sidebar-collapse d-none d-lg-grid" id="appSidebarCollapse" type="button" aria-label="Прибери навигацията" aria-controls="appSidebar" aria-expanded="true" title="Прибери навигацията">
+    <i class="bi bi-chevron-left" aria-hidden="true"></i>
+  </button>
   <button class="app-sidebar-backdrop d-lg-none" id="appSidebarBackdrop" type="button" aria-label="Затвори навигацията"></button>
   {% endif %}
 
@@ -186,8 +189,10 @@
       const header = document.querySelector('.app-topbar');
       const sidebar = document.getElementById('appSidebar');
       const toggle = document.getElementById('appSidebarToggle');
+      const collapseToggle = document.getElementById('appSidebarCollapse');
       const backdrop = document.getElementById('appSidebarBackdrop');
       const backButton = document.getElementById('appBackButton');
+      const sidebarStorageKey = 'gta-manager-sidebar-collapsed';
 
       if (backButton) {
         backButton.addEventListener('click', () => {
@@ -219,6 +224,40 @@
         if (toggle) toggle.setAttribute('aria-expanded', 'false');
       };
 
+      const setDesktopSidebarCollapsed = (collapsed, persist = true) => {
+        if (!sidebar || !collapseToggle || window.innerWidth < 992) return;
+        document.body.classList.toggle('sidebar-collapsed', collapsed);
+        collapseToggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        collapseToggle.setAttribute('aria-label', collapsed ? 'Покажи навигацията' : 'Прибери навигацията');
+        collapseToggle.setAttribute('title', collapsed ? 'Покажи навигацията' : 'Прибери навигацията');
+        const icon = collapseToggle.querySelector('i');
+        if (icon) {
+          icon.classList.toggle('bi-chevron-left', !collapsed);
+          icon.classList.toggle('bi-chevron-right', collapsed);
+        }
+        if (persist) {
+          try {
+            localStorage.setItem(sidebarStorageKey, collapsed ? '1' : '0');
+          } catch (error) {
+            // The sidebar remains usable even when browser storage is blocked.
+          }
+        }
+      };
+
+      if (collapseToggle && sidebar) {
+        let savedCollapsed = false;
+        try {
+          savedCollapsed = localStorage.getItem(sidebarStorageKey) === '1';
+        } catch (error) {
+          savedCollapsed = false;
+        }
+        setDesktopSidebarCollapsed(savedCollapsed, false);
+
+        collapseToggle.addEventListener('click', () => {
+          setDesktopSidebarCollapsed(!document.body.classList.contains('sidebar-collapsed'));
+        });
+      }
+
       if (toggle && sidebar) {
         toggle.addEventListener('click', () => {
           const open = document.body.classList.toggle('sidebar-open');
@@ -228,7 +267,20 @@
       if (backdrop) backdrop.addEventListener('click', closeSidebar);
       window.addEventListener('resize', () => {
         updateLayout();
-        if (window.innerWidth >= 992) closeSidebar();
+        if (window.innerWidth >= 992) {
+          closeSidebar();
+          if (collapseToggle && sidebar) {
+            let savedCollapsed = false;
+            try {
+              savedCollapsed = localStorage.getItem(sidebarStorageKey) === '1';
+            } catch (error) {
+              savedCollapsed = false;
+            }
+            setDesktopSidebarCollapsed(savedCollapsed, false);
+          }
+        } else {
+          document.body.classList.remove('sidebar-collapsed');
+        }
       });
 
       updateLayout();
