@@ -109,6 +109,49 @@
         text-decoration: underline;
     }
 
+    .analytics-price-chain-title {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin: 8px 0 12px;
+    }
+
+    .analytics-price-card {
+        border: 1px solid #d5d9d9;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+        height: 100%;
+    }
+
+    .analytics-price-card .card-body {
+        padding: 18px 20px;
+    }
+
+    .analytics-price-label {
+        color: #5f6b7a;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .analytics-price-value {
+        margin-top: 8px;
+        color: #16191f;
+        font-size: 1.8rem;
+        font-weight: 750;
+        line-height: 1.1;
+    }
+
+    .analytics-price-source {
+        margin-top: 7px;
+        color: #687078;
+        font-size: 0.82rem;
+    }
+
     @media (max-width: 768px) {
         .analytics-header {
             align-items: stretch;
@@ -131,7 +174,7 @@
     <div class="analytics-header">
 
         <div>
-            <h2>Аналитика на потреблението и печалбата</h2>
+            <h2>Аналитика на потреблението, ценовата верига и печалбата</h2>
 
             <p class="text-muted mb-0">
                 Изберете периода, за който искате да анализирате транзакциите на всички фирми.
@@ -292,7 +335,7 @@
             <div class="card analytics-card analytics-card--turnover h-100">
 
                 <div class="analytics-card-heading">
-                    <span>Обща сума GTA</span>
+                    <span>Сума GTA към клиента</span>
                     <span class="analytics-card-icon" aria-hidden="true"><i class="bi bi-cash-stack"></i></span>
                 </div>
 
@@ -306,15 +349,15 @@
 
                         {% if report_type == 'first' %}
 
-                            GTA оборот за първата половина
+                            Оборот към клиента за първата половина
 
                         {% elif report_type == 'second' %}
 
-                            GTA оборот за втората половина
+                            Оборот към клиента за втората половина
 
                         {% else %}
 
-                            GTA оборот за целия наличен период
+                            Оборот към клиента за целия наличен период
 
                         {% endif %}
 
@@ -326,6 +369,44 @@
 
         </div>
 
+    </div>
+
+    <div class="analytics-price-chain-title">
+        <div>
+            <h5 class="mb-1"><i class="bi bi-diagram-3 me-2" aria-hidden="true"></i>Ценова верига</h5>
+            <div class="small text-muted">Среднопретеглени цени за включените транзакции · €/л</div>
+        </div>
+        <span class="badge text-bg-light border">FinPr → ЕКО_ЦЕНА → GTA към клиента</span>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card analytics-price-card">
+                <div class="card-body">
+                    <div class="analytics-price-label">ЕКО цена на колонка</div>
+                    <div class="analytics-price-value">{{ grand_avg_eko_column_price|stringformat:".3f" }} €</div>
+                    <div class="analytics-price-source"><i class="bi bi-fuel-pump me-1"></i>Източник: FinPr от транзакционния файл</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card analytics-price-card">
+                <div class="card-body">
+                    <div class="analytics-price-label">ЕКО цена към GTA</div>
+                    <div class="analytics-price-value">{{ grand_avg_eko_to_gta_price|stringformat:".3f" }} €</div>
+                    <div class="analytics-price-source"><i class="bi bi-arrow-left-right me-1"></i>Източник: ЕКО_ЦЕНА от ценовата листа</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card analytics-price-card">
+                <div class="card-body">
+                    <div class="analytics-price-label">GTA към клиента</div>
+                    <div class="analytics-price-value">{{ grand_avg_gta_client_price|stringformat:".3f" }} €</div>
+                    <div class="analytics-price-source"><i class="bi bi-person-check me-1"></i>Крайна приложена цена към клиента</div>
+                </div>
+            </div>
+        </div>
     </div>
 
 
@@ -392,8 +473,20 @@
                                 Общо литри
                             </th>
 
+                            <th class="text-right text-nowrap">
+                                ЕКО колонка (€/л)
+                            </th>
+
+                            <th class="text-right text-nowrap">
+                                ЕКО → GTA (€/л)
+                            </th>
+
+                            <th class="text-right text-nowrap">
+                                GTA → клиент (€/л)
+                            </th>
+
                             <th class="text-right">
-                                Сума GTA (€)
+                                Сума GTA към клиента (€)
                             </th>
 
                             <th class="text-right">
@@ -448,8 +541,19 @@
                                     {{ item.total_qty|stringformat:".2f" }}
                                 </td>
 
+                                <td class="text-right">
+                                    {{ item.avg_eko_column_price|stringformat:".3f" }}
+                                </td>
+
+                                <td class="text-right">
+                                    {{ item.avg_eko_to_gta_price|stringformat:".3f" }}
+                                </td>
 
                                 <td class="text-right font-weight-bold text-primary">
+                                    {{ item.avg_gta_client_price|stringformat:".3f" }}
+                                </td>
+
+                                <td class="text-right font-weight-bold">
                                     {{ item.total_gta|stringformat:".2f" }}
                                 </td>
 
@@ -473,7 +577,7 @@
                             <tr>
 
                                 <td
-                                    colspan="5"
+                                    colspan="8"
                                     class="text-center text-muted py-5"
                                 >
                                     Няма транзакции за избрания период.
@@ -483,7 +587,7 @@
 
                         {% endfor %}
 
-                        <tr id="analytics-company-filter-empty" class="d-none"><td colspan="5" class="text-center text-muted py-5">Няма съвпадащи фирми. Въведете начало на име или ЕИК.</td></tr>
+                        <tr id="analytics-company-filter-empty" class="d-none"><td colspan="8" class="text-center text-muted py-5">Няма съвпадащи фирми. Въведете начало на име или ЕИК.</td></tr>
 
                     </tbody>
 
@@ -501,6 +605,17 @@
                                 {{ grand_total_qty|stringformat:".2f" }}
                             </td>
 
+                            <td class="text-right">
+                                {{ grand_avg_eko_column_price|stringformat:".3f" }}
+                            </td>
+
+                            <td class="text-right">
+                                {{ grand_avg_eko_to_gta_price|stringformat:".3f" }}
+                            </td>
+
+                            <td class="text-right">
+                                {{ grand_avg_gta_client_price|stringformat:".3f" }}
+                            </td>
 
                             <td class="text-right">
                                 {{ grand_total_gta|stringformat:".2f" }}
