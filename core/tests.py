@@ -156,7 +156,7 @@ class AccessTests(TestCase):
         self.assertContains(chains, "img/logos/himoil-icon.png")
         self.assertContains(home, "img/logos/gta-original-diamond.svg")
         self.assertContains(chains, 'width="78" height="78"', count=4)
-        self.assertContains(chains, "app.css?v=20261003-enterprise-ui-14")
+        self.assertContains(chains, "app.css?v=20261003-table-headings-17")
         self.assertContains(chains, f'href="{reverse("index")}"')
 
     def test_login_redirects_to_gta_home(self):
@@ -186,11 +186,10 @@ class CompanySearchTests(TestCase):
         self.assertContains(response, 'class="transaction-index">№</th>')
         self.assertContains(response, "profit-column-heading")
         self.assertContains(response, "bi-graph-up-arrow")
-        self.assertNotContains(response, "ЕКО цена на колонка")
-        self.assertNotContains(response, "FinPr")
+        self.assertContains(response, "ЕКО цена на колонка")
+        self.assertContains(response, "FinPr")
         self.assertContains(response, "ЕКО цена към GTA")
         self.assertContains(response, "GTA към клиента")
-        self.assertContains(response, "FinPr")
         self.assertContains(response, "ЕКО ЦЕНА")
 
     def test_suggestions_match_company_name_from_the_beginning(self):
@@ -252,7 +251,8 @@ class PriceListTests(TestCase):
         self.assertContains(response, "bi-truck-front-fill")
         self.assertContains(response, "1.5000 €")
         self.assertContains(response, "1.5300 €")
-        self.assertContains(response, "ЕКО цена на колонка")
+        self.assertNotContains(response, "ЕКО цена на колонка")
+        self.assertNotContains(response, "FinPr")
         self.assertContains(response, "ЕКО цена към GTA")
         self.assertContains(response, "GTA към клиента")
         self.assertContains(response, "ЕКО ЦЕНА")
