@@ -2963,3 +2963,13 @@ body{font-size:15px!important}
   font-weight:750;
   color:#263f51!important;
 }
+
+
+/* EKO workspace: the topbar already carries GTA Manager + EKO context.
+   Keep the sidebar focused on navigation and avoid duplicate branding. */
+.app-sidebar-nav--eko{
+  padding-top:10px!important;
+}
+.app-sidebar-nav--eko > .app-sidebar-label:first-child{
+  padding-top:7px!important;
+}
