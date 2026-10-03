@@ -3113,3 +3113,64 @@ body{font-size:15px!important}
   .audit-security-note{align-self:flex-start}
   .audit-privacy-banner{padding:12px}
 }
+
+
+/* =========================================================
+   Desktop collapsible sidebar
+   ========================================================= */
+@media(min-width:992px){
+  .app-sidebar{
+    transition:transform .22s ease, box-shadow .22s ease!important;
+    will-change:transform;
+  }
+
+  .has-app-sidebar .page-shell{
+    transition:margin-left .22s ease!important;
+  }
+
+  .app-sidebar-collapse{
+    position:fixed;
+    z-index:1036;
+    top:calc(var(--app-header-height) + 18px);
+    left:calc(var(--app-sidebar-width) - 15px);
+    place-items:center;
+    width:30px;
+    height:34px;
+    padding:0;
+    color:#dbe8ee;
+    background:#21475b;
+    border:1px solid #3b657a;
+    border-radius:0 7px 7px 0;
+    box-shadow:2px 2px 8px rgba(6,22,31,.16);
+    transition:left .22s ease, background .15s ease, border-color .15s ease, color .15s ease;
+  }
+
+  .app-sidebar-collapse:hover{
+    color:#fff;
+    background:#2b5a70;
+    border-color:#4f7b8f;
+  }
+
+  .app-sidebar-collapse:focus-visible{
+    outline:2px solid rgba(42,167,200,.55);
+    outline-offset:2px;
+  }
+
+  .app-sidebar-collapse i{
+    font-size:.82rem;
+    line-height:1;
+  }
+
+  body.sidebar-collapsed .app-sidebar{
+    transform:translateX(-100%)!important;
+    box-shadow:none!important;
+  }
+
+  body.sidebar-collapsed.has-app-sidebar .page-shell{
+    margin-left:0!important;
+  }
+
+  body.sidebar-collapsed .app-sidebar-collapse{
+    left:0;
+  }
+}
