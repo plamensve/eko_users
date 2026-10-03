@@ -112,6 +112,23 @@ class AuditLogMiddleware:
         if match and match.kwargs:
             metadata["route"] = {key: str(value) for key, value in match.kwargs.items()}
 
+        if url_name == "upload" and method == "POST":
+            imported = []
+            files = []
+            if request.FILES.get("cards_file"):
+                imported.append("карти и фирми")
+                files.append(request.FILES["cards_file"].name)
+            price_files = request.FILES.getlist("prices_files")
+            if price_files:
+                imported.append(f"ценови листи ({len(price_files)})")
+                files.extend(upload.name for upload in price_files)
+            if request.FILES.get("transactions_file"):
+                imported.append("транзакции")
+                files.append(request.FILES["transactions_file"].name)
+            if imported:
+                description = "Импорт: " + ", ".join(imported)
+                metadata["files"] = files[:20]
+
         log_audit_event(
             action=action,
             request=request,
