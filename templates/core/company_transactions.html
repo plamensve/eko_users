@@ -39,7 +39,7 @@
   <strong>Ценова верига:</strong>
   <span>ЕКО цена на колонка <span class="text-muted">(FinPr)</span></span>
   <i class="bi bi-arrow-right text-muted" aria-hidden="true"></i>
-  <span>ЕКО цена към GTA <span class="text-muted">(ЕКО_ЦЕНА)</span></span>
+  <span>ЕКО цена към GTA <span class="text-muted">(ЕКО ЦЕНА)</span></span>
   <i class="bi bi-arrow-right text-muted" aria-hidden="true"></i>
   <span>GTA към клиента</span>
 </div>
@@ -47,7 +47,7 @@
 <div class="row g-3 mb-4">
   <div class="col-6 col-xl"><div class="surface metric-card"><div class="metric-label">Количество</div><div class="metric-value">{{ total_qty|stringformat:'.2f' }}</div><div class="metric-meta">литра</div></div></div>
   <div class="col-6 col-xl"><div class="surface metric-card"><div class="metric-label">Сума по ЕКО колонка</div><div class="metric-value">{{ total_eko|stringformat:'.3f' }} €</div><div class="metric-meta">FinPr × литри</div></div></div>
-  <div class="col-6 col-xl"><div class="surface metric-card"><div class="metric-label">Сума ЕКО към GTA</div><div class="metric-value">{{ total_eko_to_gta|stringformat:'.3f' }} €</div><div class="metric-meta">ЕКО_ЦЕНА × литри</div></div></div>
+  <div class="col-6 col-xl"><div class="surface metric-card"><div class="metric-label">Сума ЕКО към GTA</div><div class="metric-value">{{ total_eko_to_gta|stringformat:'.3f' }} €</div><div class="metric-meta">ЕКО ЦЕНА × литри</div></div></div>
   <div class="col-6 col-xl"><div class="surface metric-card"><div class="metric-label">Сума GTA към клиента</div><div class="metric-value">{{ total_gta|stringformat:'.3f' }} €</div><div class="metric-meta">фактурирана стойност</div></div></div>
   <div class="col-6 col-xl"><div class="surface metric-card"><div class="metric-label">Печалба</div><div class="metric-value {% if total_profit < 0 %}text-danger{% else %}text-success{% endif %}">{{ total_profit|stringformat:'.2f' }} €</div><div class="metric-meta">по валидираната методика</div></div></div>
 </div>
@@ -63,7 +63,7 @@
           <th>Продукт</th>
           <th class="number">Литри</th>
           <th class="currency text-nowrap">ЕКО цена на колонка<div class="small fw-normal text-muted">FinPr</div></th>
-          <th class="currency text-nowrap">ЕКО цена към GTA<div class="small fw-normal text-muted">ЕКО_ЦЕНА</div></th>
+          <th class="currency text-nowrap">ЕКО цена към GTA<div class="small fw-normal text-muted">ЕКО ЦЕНА</div></th>
           <th class="currency text-nowrap">GTA към клиента</th>
           <th class="currency text-nowrap">Сума GTA към клиента</th>
           <th class="currency profit-column"><span class="profit-column-heading"><i class="bi bi-graph-up-arrow"></i>Печалба</span></th>
