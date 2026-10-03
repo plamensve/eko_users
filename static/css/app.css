@@ -2973,3 +2973,143 @@ body{font-size:15px!important}
 .app-sidebar-nav--eko > .app-sidebar-label:first-child{
   padding-top:7px!important;
 }
+
+
+/* =========================================================
+   Audit log administration
+   ========================================================= */
+.audit-page{max-width:1700px;margin:0 auto}
+.audit-security-note{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  min-height:34px;
+  padding:7px 10px;
+  color:#315a78;
+  background:#edf4f8;
+  border:1px solid #cbdce7;
+  border-radius:7px;
+  font-size:.72rem;
+  font-weight:750;
+}
+.audit-metric{border-top:3px solid #496e88!important}
+.audit-metric--login{border-top-color:#28775c!important}
+.audit-metric--users{border-top-color:#2e6fa1!important}
+.audit-metric--warning{border-top-color:#b14c44!important}
+.audit-privacy-banner{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  padding:13px 15px;
+  color:#4f6170;
+  background:#f5f8fa;
+  border:1px solid #d8e2e8;
+  border-radius:10px;
+}
+.audit-privacy-icon{
+  display:grid;
+  place-items:center;
+  flex:0 0 34px;
+  width:34px;
+  height:34px;
+  color:#486d86;
+  background:#e6eef3;
+  border-radius:8px;
+}
+.audit-privacy-banner strong{color:#263f51;font-size:.78rem}
+.audit-privacy-banner p{margin:3px 0 0;font-size:.71rem;line-height:1.55}
+.audit-log-surface{overflow:hidden}
+.audit-log-table{min-width:1320px}
+.audit-log-table td{vertical-align:middle}
+.audit-user-cell{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  min-width:150px;
+}
+.audit-user-avatar{
+  display:grid;
+  place-items:center;
+  flex:0 0 30px;
+  width:30px;
+  height:30px;
+  color:#fff;
+  background:#315f7c;
+  border-radius:7px;
+  font-size:.68rem;
+  font-weight:800;
+}
+.audit-user-cell strong,.audit-user-cell small{display:block}
+.audit-user-cell strong{color:#263f51;font-size:.73rem}
+.audit-user-cell small{margin-top:2px;color:#80909b;font-size:.63rem}
+.audit-action-badge{
+  display:inline-flex;
+  align-items:center;
+  min-height:24px;
+  padding:4px 7px;
+  border:1px solid #d6e0e6;
+  border-radius:6px;
+  background:#f2f5f7;
+  color:#536777;
+  font-size:.62rem;
+  font-weight:800;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+.audit-action--login{color:#176b50;background:#eaf6f1;border-color:#bfdfd2}
+.audit-action--login_failed{color:#9a3b32;background:#fff0ee;border-color:#efc3be}
+.audit-action--logout{color:#596672;background:#f1f3f4;border-color:#d9dee1}
+.audit-action--import{color:#315a78;background:#edf4f8;border-color:#c9dce8}
+.audit-action--export{color:#5d4b8e;background:#f1eef9;border-color:#d7cfee}
+.audit-action--create{color:#176b50;background:#eaf6f1;border-color:#bfdfd2}
+.audit-action--update{color:#8a5a00;background:#fff5dc;border-color:#ecd69c}
+.audit-action--delete{color:#9a3b32;background:#fff0ee;border-color:#efc3be}
+.audit-action--action{color:#5d4b8e;background:#f1eef9;border-color:#d7cfee}
+.audit-description{
+  display:block;
+  max-width:300px;
+  color:#314b5d;
+  font-size:.72rem;
+  line-height:1.4;
+}
+.audit-path{
+  display:inline-block;
+  max-width:270px;
+  overflow:hidden;
+  padding:3px 6px;
+  color:#496171;
+  background:#f3f6f8;
+  border:1px solid #e0e6ea;
+  border-radius:4px;
+  font-size:.64rem;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.audit-method,
+.audit-status{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:38px;
+  min-height:22px;
+  padding:3px 6px;
+  border-radius:5px;
+  font-size:.61rem;
+  font-weight:800;
+}
+.audit-method{color:#4e6272;background:#eef2f5;border:1px solid #d8e0e5}
+.audit-method--post{color:#7f550b;background:#fff5dc;border-color:#ecd69c}
+.audit-status{margin-left:4px}
+.audit-status--ok{color:#176b50;background:#eaf6f1}
+.audit-status--redirect{color:#315a78;background:#edf4f8}
+.audit-status--error{color:#9a3b32;background:#fff0ee}
+.audit-agent{
+  max-width:210px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+@media(max-width:767.98px){
+  .audit-security-note{align-self:flex-start}
+  .audit-privacy-banner{padding:12px}
+}
