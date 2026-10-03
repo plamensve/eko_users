@@ -4,49 +4,74 @@
 {% block title %}История на цените · {{ company.name }} · GTA Manager{% endblock %}
 
 {% block content %}
-<div class="mt-4">
-    <div class="d-flex justify-content-between align-items-center">
-        <h2>История на цените: {{ company.name }}</h2>
-        <div>
-            <a href="{% url 'company_transactions' company.id %}" class="btn btn-info"><i class="fas fa-list"></i> Транзакции</a>
-            <a href="{% url 'company_list' %}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Назад</a>
-        </div>
-    </div>
-
-    <div class="card mt-4">
-        <div class="card-header bg-dark text-white">
-            <h5 class="mb-0"><i class="fas fa-tag"></i> Актуални и исторически цени</h5>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="thead-light">
-                        <tr>
-                            <th>Дата</th>
-                            <th>Продукт</th>
-                            <th class="text-right">Крайна цена (€)</th>
-                            <th class="text-right">Марж (€)</th>
-                            <th class="text-right">Отстъпка (€)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for price in prices %}
-                        <tr>
-                            <td>{{ price.date|date:"d.m.Y" }}</td>
-                            <td>{% fuel_pill price.product %}</td>
-                            <td class="text-right font-weight-bold">{{ price.final_price|stringformat:".4f" }} €</td>
-                            <td class="text-right">{{ price.margin|stringformat:".4f" }} €</td>
-                            <td class="text-right">{{ price.discount|stringformat:".4f" }} €</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="5" class="text-center p-4">Няма намерени записи за цени за тази фирма.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+<div class="page-heading">
+  <div>
+    <div class="eyebrow">Ценова история</div>
+    <h1 class="page-title">{{ company.name }}</h1>
+    <p class="page-subtitle">Ценови листи по дати с входните параметри за изчисляване на „GTA към клиента“.</p>
+  </div>
+  <div class="action-group">
+    <a href="{% url 'company_transactions' company.id %}" class="btn btn-primary"><i class="bi bi-receipt me-1"></i>Транзакции</a>
+    <a href="{% url 'company_list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Към фирмите</a>
+  </div>
 </div>
+
+<div class="alert alert-light border d-flex align-items-start gap-2 mb-4">
+  <i class="bi bi-info-circle text-primary mt-1" aria-hidden="true"></i>
+  <div>
+    <strong>Важно за източника на цените:</strong>
+    <span class="text-muted">цената на колонка (FinPr) идва от транзакционния файл. ЕКО_ЦЕНА е цената към GTA, а реалната GTA цена към клиента се определя при транзакцията според маржа, отстъпката и КРАЙНА_ЦЕНА.</span>
+  </div>
+</div>
+
+<section class="surface">
+  <div class="surface-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div>
+      <h2 class="h5 mb-1">Актуални и исторически цени</h2>
+      <div class="small text-muted">Подредени хронологично от най-стара към най-нова дата.</div>
+    </div>
+    <span class="status-pill neutral"><i class="bi bi-tags me-1"></i>{{ prices|length }} записа</span>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Дата</th>
+          <th>Продукт</th>
+          <th class="currency text-nowrap">ЕКО цена към GTA<div class="small fw-normal text-muted">ЕКО_ЦЕНА</div></th>
+          <th class="currency">Марж</th>
+          <th class="currency">Отстъпка</th>
+          <th class="text-nowrap">Правило GTA → клиент</th>
+          <th class="currency text-nowrap">Крайна цена от листата<div class="small fw-normal text-muted">КРАЙНА_ЦЕНА</div></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for price in prices %}
+        <tr>
+          <td class="text-nowrap">{{ price.date|date:"d.m.Y" }}</td>
+          <td>{% fuel_pill price.product %}</td>
+          <td class="currency">{{ price.eko_price|stringformat:".4f" }} €</td>
+          <td class="currency {% if price.margin > 0 %}text-success fw-semibold{% endif %}">{{ price.margin|stringformat:".4f" }} €</td>
+          <td class="currency {% if price.discount > 0 %}text-primary fw-semibold{% endif %}">{{ price.discount|stringformat:".4f" }} €</td>
+          <td class="text-nowrap">
+            {% if price.margin > 0 %}
+              <span class="status-pill success">ЕКО_ЦЕНА + марж</span>
+            {% elif price.discount > 0 %}
+              <span class="status-pill warning">FinPr − отстъпка</span>
+            {% else %}
+              <span class="status-pill neutral">КРАЙНА_ЦЕНА</span>
+            {% endif %}
+          </td>
+          <td class="currency fw-bold">{{ price.final_price|stringformat:".4f" }} €</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7"><div class="empty-state">Няма намерени записи за цени за тази фирма.</div></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
 {% endblock %}

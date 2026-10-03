@@ -4,7 +4,7 @@
 {% block extra_head %}<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">{% endblock %}
 {% block content %}
 <div class="page-heading">
-  <div><div class="eyebrow">Ценови листи</div><h1 class="page-title">Импортнати цени</h1><p class="page-subtitle">Преглед на договорните цени, маржове и отстъпки по фирми и дати.</p></div>
+  <div><div class="eyebrow">Ценови листи</div><h1 class="page-title">Импортнати цени</h1><p class="page-subtitle">Преглед на входните ценови параметри, маржове и отстъпки по фирми и дати.</p></div>
   <div class="action-group"><a class="btn btn-success" href="{% url 'upload' %}"><i class="bi bi-cloud-arrow-up me-1"></i>Импортирай цени</a></div>
 </div>
 
@@ -12,6 +12,14 @@
   <div class="col-sm-4"><div class="surface metric-card"><div class="metric-label">Намерени записи</div><div class="metric-value" id="price-found-count">{{ filtered_count }}</div><div class="metric-meta">според избраните филтри</div></div></div>
   <div class="col-sm-4"><div class="surface metric-card"><div class="metric-label">Продукти</div><div class="metric-value" id="price-product-count">{{ product_count }}</div><div class="metric-meta">различни горива в резултатите</div></div></div>
   <div class="col-sm-4"><div class="surface metric-card"><div class="metric-label">Последна дата</div><div class="metric-value fs-3" id="price-latest-date">{% if latest_date %}{{ latest_date|date:'d.m.Y' }}{% else %}—{% endif %}</div><div class="metric-meta">най-новата импортната цена</div></div></div>
+</div>
+
+<div class="alert alert-light border d-flex align-items-start gap-2 mb-4">
+  <i class="bi bi-info-circle text-primary mt-1" aria-hidden="true"></i>
+  <div>
+    <strong>Ценова схема:</strong>
+    <span class="text-muted">ЕКО цена към GTA се взема от ЕКО_ЦЕНА. Реалната стойност „GTA към клиента“ се изчислява при конкретната транзакция: ЕКО_ЦЕНА + марж, FinPr − отстъпка или КРАЙНА_ЦЕНА според правилото. FinPr идва от транзакционния файл.</span>
+  </div>
 </div>
 
 <section class="surface">
@@ -33,7 +41,7 @@
   </div>
   <div id="price-results"><div class="table-responsive">
     <table class="table table-hover align-middle">
-      <thead><tr><th class="text-center" style="width:64px">№</th><th>Дата</th><th>Фирма</th><th>Продукт</th><th class="currency">ЕКО цена</th><th class="currency">Марж</th><th class="currency">Отстъпка</th><th class="currency">Крайна цена</th></tr></thead>
+      <thead><tr><th class="text-center" style="width:64px">№</th><th>Дата</th><th>Фирма</th><th>Продукт</th><th class="currency text-nowrap">ЕКО цена към GTA<div class="small fw-normal text-muted">ЕКО_ЦЕНА</div></th><th class="currency">Марж</th><th class="currency">Отстъпка</th><th class="text-nowrap">Правило GTA → клиент</th><th class="currency text-nowrap">Крайна цена от листата<div class="small fw-normal text-muted">КРАЙНА_ЦЕНА</div></th></tr></thead>
       <tbody>
       {% for price in page_obj %}
         <tr>
@@ -44,9 +52,18 @@
           <td class="currency">{{ price.eko_price|stringformat:'.4f' }} €</td>
           <td class="currency {% if price.margin > 0 %}text-success fw-semibold{% endif %}">{{ price.margin|stringformat:'.4f' }} €</td>
           <td class="currency {% if price.discount > 0 %}text-primary fw-semibold{% endif %}">{{ price.discount|stringformat:'.4f' }} €</td>
+          <td class="text-nowrap">
+            {% if price.margin > 0 %}
+              <span class="status-pill success">ЕКО_ЦЕНА + марж</span>
+            {% elif price.discount > 0 %}
+              <span class="status-pill warning">FinPr − отстъпка</span>
+            {% else %}
+              <span class="status-pill neutral">КРАЙНА_ЦЕНА</span>
+            {% endif %}
+          </td>
           <td class="currency fw-bold">{{ price.final_price|stringformat:'.4f' }} €</td>
         </tr>
-      {% empty %}<tr><td colspan="8"><div class="empty-state"><i class="bi bi-tags fs-1"></i><h2 class="h5 mt-3">Няма намерени цени</h2><p>{% if search_query or selected_product or date_from or date_to %}Променете филтрите и опитайте отново.{% else %}Импортирайте ценови листи, за да се покажат записите тук.{% endif %}</p>{% if not search_query and not selected_product and not date_from and not date_to %}<a class="btn btn-success" href="{% url 'upload' %}">Към импорта</a>{% endif %}</div></td></tr>{% endfor %}
+      {% empty %}<tr><td colspan="9"><div class="empty-state"><i class="bi bi-tags fs-1"></i><h2 class="h5 mt-3">Няма намерени цени</h2><p>{% if search_query or selected_product or date_from or date_to %}Променете филтрите и опитайте отново.{% else %}Импортирайте ценови листи, за да се покажат записите тук.{% endif %}</p>{% if not search_query and not selected_product and not date_from and not date_to %}<a class="btn btn-success" href="{% url 'upload' %}">Към импорта</a>{% endif %}</div></td></tr>{% endfor %}
       </tbody>
     </table>
   </div>

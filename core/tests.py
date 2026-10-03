@@ -82,7 +82,10 @@ class ReportingTests(TestCase):
 
     def test_historical_price_on_or_before_transaction(self):
         rows, *_ = get_company_report_data(self.company, period="full")
+        self.assertEqual(rows[0]["eko_price"], Decimal("1.600"))
+        self.assertEqual(rows[0]["eko_base_price"], Decimal("1.420"))
         self.assertEqual(rows[0]["gta_price"], Decimal("1.450"))
+        self.assertEqual(rows[0]["eko_base_total"], Decimal("14.200"))
         self.assertEqual(rows[1]["gta_price"], Decimal("1.550"))
 
     def test_auto_period_uses_second_half(self):
@@ -183,6 +186,11 @@ class CompanySearchTests(TestCase):
         self.assertContains(response, 'class="transaction-index">№</th>')
         self.assertContains(response, "profit-column-heading")
         self.assertContains(response, "bi-graph-up-arrow")
+        self.assertContains(response, "ЕКО цена на колонка")
+        self.assertContains(response, "ЕКО цена към GTA")
+        self.assertContains(response, "GTA към клиента")
+        self.assertContains(response, "FinPr")
+        self.assertContains(response, "ЕКО_ЦЕНА")
 
     def test_suggestions_match_company_name_from_the_beginning(self):
         response = self.client.get(reverse("company_search_suggestions"), {"term": "авт"})
@@ -243,6 +251,10 @@ class PriceListTests(TestCase):
         self.assertContains(response, "bi-truck-front-fill")
         self.assertContains(response, "1.5000 €")
         self.assertContains(response, "1.5300 €")
+        self.assertContains(response, "ЕКО цена към GTA")
+        self.assertContains(response, "GTA към клиента")
+        self.assertContains(response, "ЕКО_ЦЕНА")
+        self.assertContains(response, "КРАЙНА_ЦЕНА")
         self.assertEqual(
             [price.date for price in response.context["page_obj"].object_list],
             [date(2026, 9, 18), date(2026, 9, 19)],
@@ -258,6 +270,10 @@ class PriceListTests(TestCase):
         )
         self.assertContains(response, "fuel-pill fuel-pill--diesel")
         self.assertContains(response, "bi-truck-front-fill")
+        self.assertContains(response, "ЕКО цена към GTA")
+        self.assertContains(response, "GTA към клиента")
+        self.assertContains(response, "ЕКО_ЦЕНА")
+        self.assertContains(response, "КРАЙНА_ЦЕНА")
 
     def test_price_list_filters_by_company_product_and_date(self):
         response = self.client.get(reverse("price_list"), {
@@ -372,6 +388,26 @@ class AnalyticsExcelTests(TestCase):
         response = self.client.get(reverse("analytics_excel"), {"report": "first"}, follow=True)
         self.assertContains(response, "Няма транзакции")
 
+    def test_web_analytics_exposes_the_three_price_stages(self):
+        Price.objects.create(
+            date=date(2026, 9, 1),
+            company=self.company,
+            product="DIЕSЕL ЕКОNОМY",
+            eko_price="1.4000",
+            margin="0.0500",
+            discount="0",
+            final_price="1.4500",
+        )
+
+        response = self.client.get(reverse("analytics"), {"report": "full"})
+        self.assertEqual(response.status_code, 200)
+        item = next(row for row in response.context["analytics_data"] if row["company_id"] == self.company.id)
+        self.assertEqual(item["avg_eko_column_price"], Decimal("1.500"))
+        self.assertEqual(item["avg_eko_to_gta_price"], Decimal("1.400"))
+        self.assertEqual(item["avg_gta_client_price"], Decimal("1.450"))
+        self.assertContains(response, "ЕКО цена на колонка")
+        self.assertContains(response, "ЕКО цена към GTA")
+        self.assertContains(response, "GTA към клиента")
 
     def test_analytics_includes_only_report_products_from_unknown_group(self):
         Transaction.objects.create(

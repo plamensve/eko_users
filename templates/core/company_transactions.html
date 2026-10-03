@@ -20,32 +20,86 @@
     {% else %}
       <a class="btn btn-success" href="{% url 'export_excel' company.id %}?report={{ report_type }}"><i class="bi bi-file-earmark-excel me-1"></i>Excel</a>
       <a class="btn btn-outline-danger" href="{% url 'export_pdf' company.id %}?report={{ report_type }}"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</a>
-      <a class="btn btn-outline-secondary" href="{% url 'company_prices' company.id %}">Цени</a>
+      <a class="btn btn-outline-secondary" href="{% url 'company_prices' company.id %}"><i class="bi bi-tags me-1"></i>Ценова история</a>
     {% endif %}
   </div>
 </div>
+
 {% if company.note %}<div class="alert alert-warning"><strong>Забележка към фактурата:</strong> {{ company.note }}</div>{% endif %}
+
 <div class="surface mb-4 p-2"><div class="nav nav-pills report-period-nav flex-column flex-sm-row">
   {% if not is_unknown %}<a class="nav-link text-center {% if report_type == 'billing' %}active{% endif %}" href="?report=billing">За фактуриране</a>{% endif %}
   <a class="nav-link text-center {% if report_type == 'first' %}active{% endif %}" href="?report=first">01–15</a>
   <a class="nav-link text-center {% if report_type == 'second' %}active{% endif %}" href="?report=second">16–края</a>
   <a class="nav-link text-center {% if report_type == 'full' or is_unknown and report_type == 'billing' %}active{% endif %}" href="?report=full">Целият период</a>
 </div></div>
-<div class="row g-3 mb-4">
-  <div class="col-6 col-xl-3"><div class="surface metric-card"><div class="metric-label">Количество</div><div class="metric-value">{{ total_qty|stringformat:'.2f' }}</div><div class="metric-meta">литра</div></div></div>
-  <div class="col-6 col-xl-3"><div class="surface metric-card"><div class="metric-label">Сума GTA</div><div class="metric-value">{{ total_gta|stringformat:'.3f' }} €</div></div></div>
-  <div class="col-6 col-xl-3"><div class="surface metric-card"><div class="metric-label">Сума ЕКО</div><div class="metric-value">{{ total_eko|stringformat:'.3f' }} €</div></div></div>
-  <div class="col-6 col-xl-3"><div class="surface metric-card"><div class="metric-label">Печалба</div><div class="metric-value {% if total_profit < 0 %}text-danger{% else %}text-success{% endif %}">{{ total_profit|stringformat:'.2f' }} €</div></div></div>
+
+<div class="alert alert-light border d-flex flex-wrap align-items-center gap-2 mb-4">
+  <i class="bi bi-diagram-3 text-primary" aria-hidden="true"></i>
+  <strong>Ценова верига:</strong>
+  <span>ЕКО цена на колонка <span class="text-muted">(FinPr)</span></span>
+  <i class="bi bi-arrow-right text-muted" aria-hidden="true"></i>
+  <span>ЕКО цена към GTA <span class="text-muted">(ЕКО_ЦЕНА)</span></span>
+  <i class="bi bi-arrow-right text-muted" aria-hidden="true"></i>
+  <span>GTA към клиента</span>
 </div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-xl"><div class="surface metric-card"><div class="metric-label">Количество</div><div class="metric-value">{{ total_qty|stringformat:'.2f' }}</div><div class="metric-meta">литра</div></div></div>
+  <div class="col-6 col-xl"><div class="surface metric-card"><div class="metric-label">Сума по ЕКО колонка</div><div class="metric-value">{{ total_eko|stringformat:'.3f' }} €</div><div class="metric-meta">FinPr × литри</div></div></div>
+  <div class="col-6 col-xl"><div class="surface metric-card"><div class="metric-label">Сума ЕКО към GTA</div><div class="metric-value">{{ total_eko_to_gta|stringformat:'.3f' }} €</div><div class="metric-meta">ЕКО_ЦЕНА × литри</div></div></div>
+  <div class="col-6 col-xl"><div class="surface metric-card"><div class="metric-label">Сума GTA към клиента</div><div class="metric-value">{{ total_gta|stringformat:'.3f' }} €</div><div class="metric-meta">фактурирана стойност</div></div></div>
+  <div class="col-6 col-xl"><div class="surface metric-card"><div class="metric-label">Печалба</div><div class="metric-value {% if total_profit < 0 %}text-danger{% else %}text-success{% endif %}">{{ total_profit|stringformat:'.2f' }} €</div><div class="metric-meta">по валидираната методика</div></div></div>
+</div>
+
 <section class="surface company-transactions-surface">
   <div class="table-responsive">
-    <table class="table table-hover company-transactions-table">
-      <thead><tr><th class="transaction-index">№</th><th>Дата</th><th>Карта / МПС</th><th>Продукт</th><th class="number">Литри</th><th class="currency">ЕКО цена</th><th class="currency">GTA цена</th><th class="currency">Сума GTA</th><th class="currency profit-column"><span class="profit-column-heading"><i class="bi bi-graph-up-arrow"></i>Печалба</span></th></tr></thead>
-      <tbody>{% for t in transactions %}<tr>
-        <td class="transaction-index">{{ forloop.counter }}</td><td>{{ t.date|date:'d.m.Y' }}</td><td><strong>{{ t.card }}</strong><div class="small text-muted">{{ t.vehicle }}</div></td><td><div class="d-flex flex-column align-items-start gap-1">{% fuel_pill t.material %}{% if not t.has_price %}<span class="status-pill warning">Без ценова листа</span>{% endif %}</div></td>
-        <td class="number">{{ t.qty|stringformat:'.2f' }}</td><td class="currency">{{ t.eko_price|stringformat:'.3f' }} €</td><td class="currency fw-bold text-primary">{{ t.gta_price|stringformat:'.3f' }} €</td><td class="currency fw-bold">{{ t.gta_total|stringformat:'.3f' }} €</td><td class="currency profit-column {% if t.profit < 0 %}profit-negative{% else %}profit-positive{% endif %}">{{ t.profit|stringformat:'.2f' }} €</td>
-      </tr>{% empty %}<tr><td colspan="9"><div class="empty-state">Няма транзакции за избрания период.</div></td></tr>{% endfor %}</tbody>
-      {% if transactions %}<tfoot><tr class="fw-bold"><td colspan="4" class="text-end">ОБЩО</td><td class="number">{{ total_qty|stringformat:'.2f' }}</td><td></td><td></td><td class="currency">{{ total_gta|stringformat:'.3f' }} €</td><td class="currency profit-column profit-total {% if total_profit < 0 %}profit-negative{% else %}profit-positive{% endif %}">{{ total_profit|stringformat:'.2f' }} €</td></tr></tfoot>{% endif %}
+    <table class="table table-hover company-transactions-table align-middle">
+      <thead>
+        <tr>
+          <th class="transaction-index">№</th>
+          <th>Дата</th>
+          <th>Карта / МПС</th>
+          <th>Продукт</th>
+          <th class="number">Литри</th>
+          <th class="currency text-nowrap">ЕКО цена на колонка<div class="small fw-normal text-muted">FinPr</div></th>
+          <th class="currency text-nowrap">ЕКО цена към GTA<div class="small fw-normal text-muted">ЕКО_ЦЕНА</div></th>
+          <th class="currency text-nowrap">GTA към клиента</th>
+          <th class="currency text-nowrap">Сума GTA към клиента</th>
+          <th class="currency profit-column"><span class="profit-column-heading"><i class="bi bi-graph-up-arrow"></i>Печалба</span></th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for t in transactions %}
+        <tr>
+          <td class="transaction-index">{{ forloop.counter }}</td>
+          <td>{{ t.date|date:'d.m.Y' }}</td>
+          <td><strong>{{ t.card }}</strong><div class="small text-muted">{{ t.vehicle }}</div></td>
+          <td><div class="d-flex flex-column align-items-start gap-1">{% fuel_pill t.material %}{% if not t.has_price %}<span class="status-pill warning">Без ценова листа</span>{% endif %}</div></td>
+          <td class="number">{{ t.qty|stringformat:'.2f' }}</td>
+          <td class="currency">{{ t.eko_price|stringformat:'.3f' }} €</td>
+          <td class="currency">{{ t.eko_base_price|stringformat:'.3f' }} €</td>
+          <td class="currency fw-bold text-primary">{{ t.gta_price|stringformat:'.3f' }} €</td>
+          <td class="currency fw-bold">{{ t.gta_total|stringformat:'.3f' }} €</td>
+          <td class="currency profit-column {% if t.profit < 0 %}profit-negative{% else %}profit-positive{% endif %}">{{ t.profit|stringformat:'.2f' }} €</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="10"><div class="empty-state">Няма транзакции за избрания период.</div></td></tr>
+      {% endfor %}
+      </tbody>
+      {% if transactions %}
+      <tfoot>
+        <tr class="fw-bold">
+          <td colspan="4" class="text-end">ОБЩО</td>
+          <td class="number">{{ total_qty|stringformat:'.2f' }}</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td class="currency">{{ total_gta|stringformat:'.3f' }} €</td>
+          <td class="currency profit-column profit-total {% if total_profit < 0 %}profit-negative{% else %}profit-positive{% endif %}">{{ total_profit|stringformat:'.2f' }} €</td>
+        </tr>
+      </tfoot>
+      {% endif %}
     </table>
   </div>
 </section>
