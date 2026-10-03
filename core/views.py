@@ -509,10 +509,16 @@ def audit_logs(request):
     date_from_value = request.GET.get("date_from", "").strip()
     date_to_value = request.GET.get("date_to", "").strip()
 
-    if selected_user:
-        logs = logs.filter(user_id=selected_user)
-    if selected_action:
+    if selected_user.isdigit():
+        logs = logs.filter(user_id=int(selected_user))
+    elif selected_user:
+        logs = logs.none()
+
+    valid_actions = {value for value, _label in AuditLog.Action.choices}
+    if selected_action in valid_actions:
         logs = logs.filter(action=selected_action)
+    elif selected_action:
+        logs = logs.none()
     if search_query:
         logs = logs.filter(
             Q(username__icontains=search_query)
