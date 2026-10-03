@@ -138,6 +138,8 @@ class AccessTests(TestCase):
         self.assertContains(response, "Текущ отчетен период")
         self.assertNotContains(response, "Проекти и задачи")
         self.assertContains(response, 'class="app-sidebar"')
+        self.assertContains(response, 'class="app-sidebar-nav app-sidebar-nav--eko"')
+        self.assertNotContains(response, "card-fuel-module.svg")
         self.assertContains(response, "EKO")
         self.assertContains(response, 'class="app-page-back"')
         self.assertContains(response, 'id="appBackButton"')
@@ -162,7 +164,7 @@ class AccessTests(TestCase):
         self.assertContains(chains, "img/logos/himoil-icon.png")
         self.assertContains(home, "img/logos/gta-original-diamond.svg")
         self.assertContains(chains, 'width="78" height="78"', count=4)
-        self.assertContains(chains, "app.css?v=20261003-pricing-method-19")
+        self.assertContains(chains, "app.css?v=20261003-clean-sidebar-20")
         self.assertContains(chains, f'href="{reverse("index")}"')
 
     def test_login_redirects_to_gta_home(self):
