@@ -156,7 +156,7 @@ class AccessTests(TestCase):
         self.assertContains(chains, "img/logos/himoil-icon.png")
         self.assertContains(home, "img/logos/gta-original-diamond.svg")
         self.assertContains(chains, 'width="78" height="78"', count=4)
-        self.assertContains(chains, "app.css?v=20261003-enterprise-ui-14")
+        self.assertContains(chains, "app.css?v=20261003-table-headings-17")
         self.assertContains(chains, f'href="{reverse("index")}"')
 
     def test_login_redirects_to_gta_home(self):
@@ -187,9 +187,9 @@ class CompanySearchTests(TestCase):
         self.assertContains(response, "profit-column-heading")
         self.assertContains(response, "bi-graph-up-arrow")
         self.assertContains(response, "ЕКО цена на колонка")
+        self.assertContains(response, "FinPr")
         self.assertContains(response, "ЕКО цена към GTA")
         self.assertContains(response, "GTA към клиента")
-        self.assertContains(response, "FinPr")
         self.assertContains(response, "ЕКО ЦЕНА")
 
     def test_suggestions_match_company_name_from_the_beginning(self):
@@ -236,8 +236,6 @@ class PriceListTests(TestCase):
         second_company = Company.objects.create(name="БЕТА ЛОГИСТИК", eik="222222222")
         Price.objects.create(date=date(2026, 9, 18), company=first_company, product="DIESEL", eko_price="1.5000", margin="0.0300", discount="0", final_price="1.5300")
         Price.objects.create(date=date(2026, 9, 19), company=second_company, product="E GAS LPG", eko_price="0.7000", margin="0", discount="0.0200", final_price="0.6800")
-        Transaction.objects.create(plant="1", card_number="PUMP-1", material="DIESEL", date=date(2026, 9, 18), bill_qty="10", price="1.6200", amount="16.20")
-        Transaction.objects.create(plant="2", card_number="PUMP-2", material="E GAS LPG", date=date(2026, 9, 19), bill_qty="10", price="0.7300", amount="7.30")
 
     def test_price_list_shows_imported_price_fields(self):
         response = self.client.get(reverse("price_list"))
@@ -251,11 +249,10 @@ class PriceListTests(TestCase):
         self.assertContains(response, "DIESEL")
         self.assertContains(response, "fuel-pill fuel-pill--diesel")
         self.assertContains(response, "bi-truck-front-fill")
-        self.assertContains(response, "1.6200 €")
-        self.assertContains(response, "0.7300 €")
         self.assertContains(response, "1.5000 €")
         self.assertContains(response, "1.5300 €")
-        self.assertContains(response, "ЕКО цена на колонка")
+        self.assertNotContains(response, "ЕКО цена на колонка")
+        self.assertNotContains(response, "FinPr")
         self.assertContains(response, "ЕКО цена към GTA")
         self.assertContains(response, "GTA към клиента")
         self.assertContains(response, "ЕКО ЦЕНА")
@@ -280,6 +277,8 @@ class PriceListTests(TestCase):
         )
         self.assertContains(response, "fuel-pill fuel-pill--diesel")
         self.assertContains(response, "bi-truck-front-fill")
+        self.assertNotContains(response, "ЕКО цена на колонка")
+        self.assertNotContains(response, "FinPr")
         self.assertContains(response, "ЕКО цена към GTA")
         self.assertContains(response, "GTA към клиента")
         self.assertContains(response, "ЕКО ЦЕНА")
