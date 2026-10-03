@@ -249,8 +249,6 @@ class PriceListTests(TestCase):
         self.assertContains(response, "DIESEL")
         self.assertContains(response, "fuel-pill fuel-pill--diesel")
         self.assertContains(response, "bi-truck-front-fill")
-        self.assertContains(response, "ЕКО цена към GTA")
-        self.assertContains(response, "GTA към клиента")
         self.assertContains(response, "1.5000 €")
         self.assertContains(response, "1.5300 €")
         self.assertContains(response, "ЕКО цена към GTA")
@@ -272,6 +270,10 @@ class PriceListTests(TestCase):
         )
         self.assertContains(response, "fuel-pill fuel-pill--diesel")
         self.assertContains(response, "bi-truck-front-fill")
+        self.assertContains(response, "ЕКО цена към GTA")
+        self.assertContains(response, "GTA към клиента")
+        self.assertContains(response, "ЕКО_ЦЕНА")
+        self.assertContains(response, "КРАЙНА_ЦЕНА")
 
     def test_price_list_filters_by_company_product_and_date(self):
         response = self.client.get(reverse("price_list"), {
