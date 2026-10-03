@@ -18,7 +18,7 @@
   <i class="bi bi-info-circle text-primary mt-1" aria-hidden="true"></i>
   <div>
     <strong>Ценова схема:</strong>
-    <span class="text-muted">ЕКО цена към GTA се взема от ЕКО_ЦЕНА. Реалната стойност „GTA към клиента“ се изчислява при конкретната транзакция: ЕКО_ЦЕНА + марж, FinPr − отстъпка или КРАЙНА_ЦЕНА според правилото. FinPr идва от транзакционния файл.</span>
+    <span class="text-muted">ЕКО цена към GTA се взема от ЕКО ЦЕНА. Реалната стойност „GTA към клиента“ се изчислява при конкретната транзакция: <strong>ЕКО ЦЕНА + МАРЖ</strong>, <strong>ЕКО <i class="bi bi-fuel-pump-fill mx-1" aria-hidden="true"></i> − ОТСТЪПКА</strong> или <strong>КРАЙНА ЦЕНА</strong>. FinPr идва от транзакционния файл.</span>
   </div>
 </div>
 
@@ -41,7 +41,7 @@
   </div>
   <div id="price-results"><div class="table-responsive">
     <table class="table table-hover align-middle">
-      <thead><tr><th class="text-center" style="width:64px">№</th><th>Дата</th><th>Фирма</th><th>Продукт</th><th class="currency text-nowrap">ЕКО цена към GTA<div class="small fw-normal text-muted">ЕКО_ЦЕНА</div></th><th class="currency">Марж</th><th class="currency">Отстъпка</th><th class="text-nowrap">Правило GTA → клиент</th><th class="currency text-nowrap">Крайна цена от листата<div class="small fw-normal text-muted">КРАЙНА_ЦЕНА</div></th></tr></thead>
+      <thead><tr><th class="text-center" style="width:64px">№</th><th>Дата</th><th>Фирма</th><th>Продукт</th><th class="currency text-nowrap">ЕКО цена на колонка<div class="small fw-normal text-muted">FinPr</div></th><th class="currency text-nowrap">ЕКО цена към GTA<div class="small fw-normal text-muted">ЕКО ЦЕНА</div></th><th class="currency">Марж</th><th class="currency">Отстъпка</th><th class="text-nowrap">Правило GTA → клиент</th><th class="currency text-nowrap">Крайна цена от листата<div class="small fw-normal text-muted">КРАЙНА ЦЕНА</div></th></tr></thead>
       <tbody>
       {% for price in page_obj %}
         <tr>
@@ -49,21 +49,30 @@
           <td class="text-nowrap">{{ price.date|date:'d.m.Y' }}</td>
           <td>{% if price.company %}<a class="fw-bold text-decoration-none" href="{% url 'company_prices' price.company.id %}">{{ price.company.name }}</a><div class="small text-muted font-monospace">ЕИК {{ price.company.eik }}</div>{% else %}<strong>{{ price.company_name_tmp|default:'Несвързана фирма' }}</strong><div class="small text-muted font-monospace">ЕИК {{ price.company_eik_tmp|default:'—' }}</div>{% endif %}</td>
           <td>{% fuel_pill price.product %}</td>
+          <td class="currency">
+            {% if price.column_prices %}
+              {% for column_price in price.column_prices %}
+                <span{% if not forloop.first %} class="d-block mt-1"{% endif %}>{{ column_price|stringformat:'.4f' }} €</span>
+              {% endfor %}
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
           <td class="currency">{{ price.eko_price|stringformat:'.4f' }} €</td>
           <td class="currency {% if price.margin > 0 %}text-success fw-semibold{% endif %}">{{ price.margin|stringformat:'.4f' }} €</td>
           <td class="currency {% if price.discount > 0 %}text-primary fw-semibold{% endif %}">{{ price.discount|stringformat:'.4f' }} €</td>
           <td class="text-nowrap">
             {% if price.margin > 0 %}
-              <span class="status-pill success">ЕКО_ЦЕНА + марж</span>
+              <span class="status-pill success">ЕКО ЦЕНА + МАРЖ</span>
             {% elif price.discount > 0 %}
-              <span class="status-pill warning">FinPr − отстъпка</span>
+              <span class="status-pill warning">ЕКО <i class="bi bi-fuel-pump-fill mx-1" aria-hidden="true"></i> − ОТСТЪПКА</span>
             {% else %}
-              <span class="status-pill neutral">КРАЙНА_ЦЕНА</span>
+              <span class="status-pill neutral">КРАЙНА ЦЕНА</span>
             {% endif %}
           </td>
           <td class="currency fw-bold">{{ price.final_price|stringformat:'.4f' }} €</td>
         </tr>
-      {% empty %}<tr><td colspan="9"><div class="empty-state"><i class="bi bi-tags fs-1"></i><h2 class="h5 mt-3">Няма намерени цени</h2><p>{% if search_query or selected_product or date_from or date_to %}Променете филтрите и опитайте отново.{% else %}Импортирайте ценови листи, за да се покажат записите тук.{% endif %}</p>{% if not search_query and not selected_product and not date_from and not date_to %}<a class="btn btn-success" href="{% url 'upload' %}">Към импорта</a>{% endif %}</div></td></tr>{% endfor %}
+      {% empty %}<tr><td colspan="10"><div class="empty-state"><i class="bi bi-tags fs-1"></i><h2 class="h5 mt-3">Няма намерени цени</h2><p>{% if search_query or selected_product or date_from or date_to %}Променете филтрите и опитайте отново.{% else %}Импортирайте ценови листи, за да се покажат записите тук.{% endif %}</p>{% if not search_query and not selected_product and not date_from and not date_to %}<a class="btn btn-success" href="{% url 'upload' %}">Към импорта</a>{% endif %}</div></td></tr>{% endfor %}
       </tbody>
     </table>
   </div>
