@@ -4,12 +4,14 @@ from django.contrib.auth.decorators import login_required
 from .forms import UploadFileForm, CompanyForm, CardForm
 from .utils import import_cards, import_prices, import_transactions, export_all_companies_zip, get_company_report_data, \
     export_single_company_zip, get_unknown_report_data, normalize_text, relink_data
-from .models import Transaction, Company, Price, Card
+from .models import Transaction, Company, Price, Card, AuditLog
 import os
 import tempfile
 from django.db.models import Count, Max, Min, Q
 from django.core.paginator import Paginator
+from django.core.exceptions import PermissionDenied
 from django.utils.dateparse import parse_date
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.urls import reverse
 from decimal import Decimal
@@ -490,6 +492,63 @@ def profile(request):
         messages.success(request, "Профилът беше обновен.")
         return redirect('profile')
     return render(request, 'core/profile.html')
+
+
+@login_required
+def audit_logs(request):
+    if not request.user.is_staff:
+        raise PermissionDenied
+
+    base_logs = AuditLog.objects.select_related("user").all()
+    logs = base_logs
+
+    selected_user = request.GET.get("user", "").strip()
+    selected_action = request.GET.get("action", "").strip()
+    search_query = request.GET.get("q", "").strip()
+    date_from_value = request.GET.get("date_from", "").strip()
+    date_to_value = request.GET.get("date_to", "").strip()
+
+    if selected_user:
+        logs = logs.filter(user_id=selected_user)
+    if selected_action:
+        logs = logs.filter(action=selected_action)
+    if search_query:
+        logs = logs.filter(
+            Q(username__icontains=search_query)
+            | Q(description__icontains=search_query)
+            | Q(path__icontains=search_query)
+            | Q(ip_address__icontains=search_query)
+        )
+
+    date_from = parse_date(date_from_value)
+    date_to = parse_date(date_to_value)
+    if date_from:
+        logs = logs.filter(created_at__date__gte=date_from)
+    if date_to:
+        logs = logs.filter(created_at__date__lte=date_to)
+
+    today = timezone.localdate()
+    paginator = Paginator(logs, 100)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    query_params = request.GET.copy()
+    query_params.pop("page", None)
+
+    return render(request, "core/audit_logs.html", {
+        "page_obj": page_obj,
+        "filtered_count": logs.count(),
+        "today_logins": base_logs.filter(action=AuditLog.Action.LOGIN, created_at__date=today).count(),
+        "today_failed_logins": base_logs.filter(action=AuditLog.Action.LOGIN_FAILED, created_at__date=today).count(),
+        "today_active_users": base_logs.filter(created_at__date=today, user__isnull=False).values("user").distinct().count(),
+        "users": request.user.__class__.objects.filter(audit_events__isnull=False).distinct().order_by("username"),
+        "actions": AuditLog.Action.choices,
+        "selected_user": selected_user,
+        "selected_action": selected_action,
+        "search_query": search_query,
+        "date_from": date_from_value,
+        "date_to": date_to_value,
+        "query_string": query_params.urlencode(),
+    })
 
 
 @login_required
