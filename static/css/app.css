@@ -212,7 +212,7 @@ body{padding-bottom:var(--app-footer-height)}.app-footer{position:fixed;left:0;r
 
 /* Company report transaction table */
 .company-transactions-surface { overflow:hidden; }
-.company-transactions-table { min-width:1050px; }
+.company-transactions-table { min-width:1320px; }
 .company-transactions-table > :not(caption) > * > * { padding:.85rem 1rem; }
 .company-transactions-table .transaction-index {
   width:58px;
@@ -2914,4 +2914,52 @@ body{font-size:15px!important}
   .pricing-guide-foot{padding:11px 14px}
   .pricing-source-card{grid-template-columns:34px minmax(0,1fr);padding:13px}
   .pricing-source-icon{width:34px;height:34px}
+}
+
+
+/* Transaction pricing method: make the actually applied commercial rule explicit. */
+.pricing-method-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  min-height:26px;
+  padding:4px 8px;
+  border:1px solid #d7e1e7;
+  border-radius:6px;
+  font-size:.66rem;
+  font-weight:800;
+  line-height:1;
+  letter-spacing:.02em;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+.pricing-method-badge i{font-size:.72rem}
+.pricing-method-badge--margin{
+  color:#176b50;
+  background:#eaf6f1;
+  border-color:#bfdfd2;
+}
+.pricing-method-badge--discount{
+  color:#8a5a00;
+  background:#fff5dc;
+  border-color:#ecd69c;
+}
+.pricing-method-badge--final{
+  color:#315a78;
+  background:#edf4f8;
+  border-color:#c9dce8;
+}
+.pricing-method-badge--fallback{
+  color:#5c6873;
+  background:#f2f4f5;
+  border-color:#d7dde1;
+}
+.pricing-method-badge--missing{
+  color:#9a3b32;
+  background:#fff0ee;
+  border-color:#efc3be;
+}
+.pricing-adjustment-value{
+  font-weight:750;
+  color:#263f51!important;
 }
